@@ -1,17 +1,22 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable max-classes-per-file */
 import { Injectable } from '../injectable';
 import { Command, Event, Query } from './command-query-event';
 import { ElectronApplication } from './electron-application';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockIpcMain = { on: jest.fn() } as any;
 
 @Injectable()
 class TestClass {
   @Command('my-command')
-  commandHandler(): void { console.log('implementations'); }
+  commandHandler(): void {}
   @Query('my-query')
-  queryHandler(): void { console.log('implementations'); }
+  queryHandler(): void {}
   @Event('my-event')
-  eventHandler(): void { console.log('implementations'); }
+  eventHandler(): void {}
 }
 
 describe('The @ElectronApplication decorator', () => {
@@ -20,7 +25,7 @@ describe('The @ElectronApplication decorator', () => {
       ipcMain: mockIpcMain,
     })
     class ApplicationToTest {
-      constructor(private test: TestClass) { }
+      constructor(private test: TestClass) {}
     }
 
     expect(mockIpcMain.on).toHaveBeenCalledTimes(3);

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable max-classes-per-file */
 import { Injectable } from './injectable';
 import { Injector } from './injector';
 
@@ -36,6 +38,7 @@ describe('The @Injectable decorator', () => {
   });
 
   it('should NOT register the decorated class if the constructorFunction is undefined', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Injectable()(undefined as any);
     expect(Injector.register).not.toHaveBeenCalledWith(undefined);
   });

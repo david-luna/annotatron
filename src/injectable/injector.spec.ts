@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import 'reflect-metadata';
 import { Injector } from './injector';
 
@@ -48,7 +49,6 @@ describe('The static Injector', () => {
     expect(instanceObjectB instanceof StubbedClassB).toBeTruthy();
   });
 
-  
   it('should allow to override a type with another', () => {
     Injector.register(StubbedClassB, { overrides: StubbedClassA });
 
