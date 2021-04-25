@@ -5,6 +5,7 @@ import { GenericClassDecorator, Type } from '../types';
  * Use to configure the injection
  */
 export interface InjectableParams {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   overrides?: Function;
 }
 
@@ -12,9 +13,7 @@ export interface InjectableParams {
  * @returns {GenericClassDecorator<Type<unknown>>}
  * @constructor
  */
-export const Injectable = (
-  params?: InjectableParams
-): GenericClassDecorator<Type<unknown>> => {
+export const Injectable = (params?: InjectableParams): GenericClassDecorator<Type<unknown>> => {
   return (target: Type<unknown>): unknown => {
     Injector.register(target, params);
 

@@ -36,9 +36,9 @@ const resolveSubscriptions = (metadataKey: string, type: Type<unknown>, ipcMain:
   const instance = Injector.resolve(type) as any;
   const channel = metadataKey.replace('metadata:', '');
 
-  Object.keys(observedTypes).forEach((type) => {
-    const eventName = `${channel}:${type}`;
-    const targetMethods = observedTypes[type]
+  Object.keys(observedTypes).forEach((typeName) => {
+    const eventName = `${channel}:${typeName}`;
+    const targetMethods = observedTypes[typeName];
 
     targetMethods.forEach((method) => {
       ipcMain.on(eventName, (evt, args) => {
@@ -50,16 +50,15 @@ const resolveSubscriptions = (metadataKey: string, type: Type<unknown>, ipcMain:
               .then((value) => evt.sender.send('result', [value]))
               .catch((error) => evt.sender.send('error', [error]));
           } else {
-            evt.sender.send('result', [result])
+            evt.sender.send('result', [result]);
           }
         } catch (error) {
-          evt.sender.send('error', [error])
+          evt.sender.send('error', [error]);
         }
-      })
+      });
     });
   });
 };
-
 
 /**
  * @returns {GenericClassDecorator<Type<unknown>>}
@@ -73,13 +72,13 @@ export const ElectronApplication = (params: ElectronParams): GenericClassDecorat
     const types = (Reflect.getMetadata('design:paramtypes', target) || []) as Type<unknown>[];
 
     types.forEach((type) => {
-      resolveSubscriptions(COMMANDS_METADATA_KEY, type, params.ipcMain)
-      resolveSubscriptions(QUERIES_METADATA_KEY, type, params.ipcMain)
-      resolveSubscriptions(EVENTS_METADATA_KEY, type, params.ipcMain)
+      resolveSubscriptions(COMMANDS_METADATA_KEY, type, params.ipcMain);
+      resolveSubscriptions(QUERIES_METADATA_KEY, type, params.ipcMain);
+      resolveSubscriptions(EVENTS_METADATA_KEY, type, params.ipcMain);
     });
 
     return (): unknown => {
-      return new target(...types.map(t => Injector.resolve(t)));
+      return new target(...types.map((t) => Injector.resolve(t)));
     };
   };
 };

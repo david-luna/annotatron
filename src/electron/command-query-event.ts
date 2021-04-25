@@ -13,19 +13,15 @@ export const EVENTS_METADATA_KEY = 'metadata:events';
  */
 const createDecorator = (metadataKey: string) => {
   return (type: string): GenericMethodDecorator => {
-    return function (
-      target: Type<unknown>,
-      key: string,
-      descriptor: PropertyDescriptor
-    ): PropertyDescriptor {
+    return function (target: Type<unknown>, key: string, descriptor: PropertyDescriptor): PropertyDescriptor {
       const metadata = (Reflect.getMetadata(metadataKey, target.constructor) || {}) as Record<string, string[]>;
-  
+
       metadata[type] = metadata[type] ? metadata[type].concat([key]) : [key];
       Reflect.defineMetadata(metadataKey, metadata, target.constructor);
-  
+
       return descriptor;
     };
-  }
+  };
 };
 
 export const Command = createDecorator(COMMANDS_METADATA_KEY);
