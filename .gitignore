@@ -1,0 +1,8 @@
+# node
+node_modules
+
+# test artifacts
+/coverage
+
+# build artifacts
+/lib
