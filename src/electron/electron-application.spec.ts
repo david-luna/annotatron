@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-empty-function */
@@ -6,8 +7,9 @@ import { Injectable } from '../injectable';
 import { Command, Event, Query } from './command-query-event';
 import { ElectronApplication } from './electron-application';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockIpcMain = { on: jest.fn() } as any;
+const ipcMainMock = { on: jest.fn() } as any;
+const browserWindowMock = jest.fn();
+const electronMock = { browserWindow: browserWindowMock, ipcMain: ipcMainMock } as any;
 
 @Injectable()
 class TestClass {
@@ -20,17 +22,36 @@ class TestClass {
 }
 
 describe('The @ElectronApplication decorator', () => {
-  it('should add metadata on which commands the class accepts', () => {
-    @ElectronApplication({
-      ipcMain: mockIpcMain,
-    })
-    class ApplicationToTest {
-      constructor(private test: TestClass) {}
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  it('should throw if the class does not have a static method name createWindow', () => {
+    try {
+      @ElectronApplication({
+        electron: electronMock,
+        providers: [TestClass],
+      })
+      class ApplicationWithoutStaticMethod {}
+    } catch (error) {
+      expect(error instanceof TypeError).toEqual(true);
+      expect(error.message).toContain('must have a static method');
     }
 
-    expect(mockIpcMain.on).toHaveBeenCalledTimes(3);
-    expect(mockIpcMain.on).toHaveBeenNthCalledWith(1, 'commands:my-command', expect.any(Function));
-    expect(mockIpcMain.on).toHaveBeenNthCalledWith(2, 'queries:my-query', expect.any(Function));
-    expect(mockIpcMain.on).toHaveBeenNthCalledWith(3, 'events:my-event', expect.any(Function));
+    expect.assertions(2);
+  });
+
+  it('should add metadata on which commands the class accepts', () => {
+    @ElectronApplication({
+      electron: electronMock,
+      providers: [TestClass],
+    })
+    class ApplicationToTest {
+      static createWindow(): any {}
+    }
+
+    expect(ipcMainMock.on).toHaveBeenCalledTimes(3);
+    expect(ipcMainMock.on).toHaveBeenNthCalledWith(1, 'commands:my-command', expect.any(Function));
+    expect(ipcMainMock.on).toHaveBeenNthCalledWith(2, 'queries:my-query', expect.any(Function));
+    expect(ipcMainMock.on).toHaveBeenNthCalledWith(3, 'events:my-event', expect.any(Function));
   });
 });

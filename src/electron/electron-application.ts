@@ -1,37 +1,64 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GenericClassDecorator, Type } from '../types';
+import { GenericClassDecorator, isPromise, Type } from '../types';
 import { COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY } from './command-query-event';
 import { Injector } from '../injectable';
-
-interface IpcMainEvent {
-  // Partial of: https://electronjs.org/docs/api/structures/ipc-main-event
-  frameId: number;
-  processId: number;
-  // WebContents partial
-  sender: {
-    send(channel: string, ...args: any[]): void;
-  };
-}
-
-export interface IpcMain extends NodeJS.EventEmitter {
-  // on(event: string, handler: (event: EventFromRenderer, args: unknown[]) => void): void;
-  on(channel: string, listener: (event: IpcMainEvent, ...args: any[]) => void): this;
-}
+import { ElectronMainEmitter, ElectronApi, ElectronEmitter, BrowserWindow } from './electron-types';
 
 export interface ElectronParams {
-  ipcMain: IpcMain;
+  electron: ElectronApi;
+  providers: Type<unknown>[];
 }
 
+interface EmittersPool {
+  main: ElectronMainEmitter;
+  windows: BrowserWindow[];
+}
+
+type BrowserWindowFactory = (...args: unknown[]) => BrowserWindow;
+
+// Will keep references (overwritten by class decorator)
+let emittersPool: EmittersPool;
+
 /**
- * Tells if the value is a promise
- * @param value the value to check
+ * Broadcasts a message to all renderer windows and also in main process
+ *
+ * @param data data attached to the event
  */
-const isPromise = (value: any): value is Promise<unknown> => {
-  return value && typeof value.then === 'function';
+export const emitEvent = (data: unknown): void => {
+  if (emittersPool !== void 0) {
+    // Notify all active renderers
+    emittersPool.windows.forEach((win) => {
+      win.webContents.send('events', [data]);
+    });
+    // Notify observers on the main process
+    emittersPool.main.emit('events', [data]);
+  }
 };
 
-// const resolveSubscriptions = (metadataKey: string, target: any, app: App): void => {
-const resolveSubscriptions = (metadataKey: string, type: Type<unknown>, ipcMain: IpcMain): void => {
+/**
+ * Wraps the static method of the electron app class that creates windows
+ * the wrapper function updated the emitters pool with newly crated windows
+ *
+ * @param decoratedClass the application class being decorated
+ */
+const observeWindowFactory = (decoratedClass: any): void => {
+  const createWindow = decoratedClass.createWindow as BrowserWindowFactory;
+
+  if (!createWindow) {
+    throw TypeError('Application class must have a static method named createWindow');
+  }
+
+  decoratedClass.createWindow = (...args: unknown[]) => {
+    const rendererWindow = createWindow.apply(decoratedClass, args);
+    emittersPool.windows.push(rendererWindow);
+    rendererWindow.on('closed', () => {
+      emittersPool.windows.splice(emittersPool.windows.indexOf(rendererWindow), 1);
+    });
+    return rendererWindow;
+  };
+};
+
+const resolveAnnotations = (metadataKey: string, type: Type<unknown>, main: ElectronMainEmitter): void => {
   const observedTypes = (Reflect.getMetadata(metadataKey, type) || {}) as Record<string, string[]>;
   const instance = Injector.resolve(type) as any;
   const channel = metadataKey.replace('metadata:', '');
@@ -41,19 +68,23 @@ const resolveSubscriptions = (metadataKey: string, type: Type<unknown>, ipcMain:
     const targetMethods = observedTypes[typeName];
 
     targetMethods.forEach((method) => {
-      ipcMain.on(eventName, (evt, args) => {
+      main.on(eventName, (evt, args) => {
+        const resultsChannel = `${channel}:results`;
+        const errorsChannel = `${channel}:errors`;
         try {
-          const result = instance[method](args[0]);
+          // TODO: check for message shape? ({ type, payload })
+          const payload = args[0].payload;
+          const result = instance[method](payload);
 
           if (isPromise(result)) {
             result
-              .then((value) => evt.sender.send('result', [value]))
-              .catch((error) => evt.sender.send('error', [error]));
-          } else {
-            evt.sender.send('result', [result]);
+              .then((value) => evt.sender.send(resultsChannel, [value]))
+              .catch((error) => evt.sender.send(errorsChannel, [error]));
+          } else if (result) {
+            evt.sender.send(resultsChannel, [result]);
           }
         } catch (error) {
-          evt.sender.send('error', [error]);
+          evt.sender.send(errorsChannel, [error]);
         }
       });
     });
@@ -66,19 +97,21 @@ const resolveSubscriptions = (metadataKey: string, type: Type<unknown>, ipcMain:
  */
 export const ElectronApplication = (params: ElectronParams): GenericClassDecorator<Type<unknown>> => {
   return (target: Type<unknown>): unknown => {
-    // TODO: create the window and the bus
-    // console.log('params', params);
+    emittersPool = { main: params.electron.ipcMain, windows: [] };
 
-    const types = (Reflect.getMetadata('design:paramtypes', target) || []) as Type<unknown>[];
+    const types = params.providers;
+    const mainEmitter = params.electron.ipcMain;
 
     types.forEach((type) => {
-      resolveSubscriptions(COMMANDS_METADATA_KEY, type, params.ipcMain);
-      resolveSubscriptions(QUERIES_METADATA_KEY, type, params.ipcMain);
-      resolveSubscriptions(EVENTS_METADATA_KEY, type, params.ipcMain);
+      resolveAnnotations(COMMANDS_METADATA_KEY, type, mainEmitter);
+      resolveAnnotations(QUERIES_METADATA_KEY, type, mainEmitter);
+      // TODO: events are special (only listen, return value is not an event)
+      resolveAnnotations(EVENTS_METADATA_KEY, type, mainEmitter);
     });
 
-    return (): unknown => {
-      return new target(...types.map((t) => Injector.resolve(t)));
-    };
+    // All windows created with the window factory will get connected to events
+    observeWindowFactory(target);
+
+    return target;
   };
 };
