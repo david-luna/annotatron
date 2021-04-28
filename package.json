@@ -2,7 +2,8 @@
   "name": "annotatron",
   "version": "0.0.0",
   "description": "set of helper annotations for electron projects",
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "jest",
