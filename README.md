@@ -28,7 +28,7 @@ export class MyElectronApplication {
 
 ### Listening in the main process
 
-Providers are classes that will be injected into the application and will listen to messages from browser windows and other providers. A provider can listen to Commands, Queries adn Events using the right decorators.
+Providers are classes that will be injected into the application and will listen to messages from browser windows and other providers. A provider can listen to Commands, Queries adn Events using the right decorators. Those decorators require a parameter which is the type of command/query/event they are listening to.
 
 ```typescript
 // file: my-provider.ts
@@ -54,6 +54,14 @@ export class MyProvider {
   eventHandler(event: any): void {
     // handle the event. it does nothing with the result value
   }
+}
+```
+
+The annotations expect that messages for commands, queries and events to have the following interface.
+```typescript
+interface CommandQueryOrEvent {
+  type: string;  // decorators refer to this property
+  payload: unknown; // the decorated method will receive this as parameter
 }
 ```
 
@@ -93,52 +101,40 @@ A sample preload script could be:
 // file: preload.js
 const { contextBridge, ipcRenderer } = require('electron');
 
+const observableLike = (key) => {
+  return {
+    subscribe: (observer) => {
+      const ipcHandler = (evt, payload) => observer(payload);
+
+      ipcRenderer.on(`annotatron:${key}`, ipcHandler);
+      return {
+        unsubscribe: function() {
+          ipcRenderer.removeListener(`annotatron:${key}`, ipcHandler);
+        }
+      };
+    }
+  };
+};
+
 contextBridge.exposeInMainWorld(
   'mainProcess',
   {
     sendCommand: (command) => ipcRenderer.send(`annotatron:commands`, [command]),
-    sendQuery: (query) => ipcRenderer.send(`annotatron:queries`, [query]),
-    results$: {
-      subscribe: (observer) => {
-        const ipcHandler = (evt, payload) => observer(payload);
-
-        ipcRenderer.on(`commands:results`, ipcHandler);
-        ipcRenderer.on(`queries:results`, ipcHandler);
-        return {
-          unsubscribe: function() {
-            ipcRenderer.removeListener(`commands:results`, ipcHandler);
-            ipcRenderer.removeListener(`queries:results`, ipcHandler);
-          }
-        };
-      }
-    },
-    errors$: {
-      subscribe: (observer) => {
-        const ipcHandler = (evt, payload) => observer(payload);
-
-        ipcRenderer.on(`commands:errors`, ipcHandler);
-        ipcRenderer.on(`queries:errors`, ipcHandler);
-        return {
-          unsubscribe: function() {
-            ipcRenderer.removeListener(`commands:errors`, ipcHandler);
-            ipcRenderer.removeListener(`queries:errors`, ipcHandler);
-          }
-        };
-      }
-    }
-    events$: {
-      subscribe: (observer) => {
-        const ipcHandler = (evt, payload) => observer(payload);
-
-        ipcRenderer.on(`events`, ipcHandler);
-
-        return {
-          unsubscribe: function() {
-            ipcRenderer.removeListener(`events`, ipcHandler);
-          }
-        };
-      }
-    }
+    sendQuery  : (query)   => ipcRenderer.send(`annotatron:queries` , [query]),
+    results$   : observableLike('results'),
+    errors$    : observableLike('errors'),
+    events$    : observableLike('events'),
   }
 );
 ```
+Point to that file in the `preload` option when creating a window and you and your renderer process (the UI) will have a global property name `mainProcess` which has all the tolls for communicating with the main process.
+
+## Release notes
+
+### [0.0.1]
+
+* Injection annotations
+* Messaging annotations
+* Application annotations
+* event emitter method
+
