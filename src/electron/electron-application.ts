@@ -2,7 +2,7 @@
 import { GenericClassDecorator, isPromise, Type } from '../types';
 import { COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY } from './command-query-event';
 import { Injector } from '../injectable';
-import { ElectronMainEmitter, ElectronApi, ElectronEmitter, BrowserWindow } from './electron-types';
+import { ElectronMainEmitter, ElectronApi, BrowserWindow } from './electron-types';
 
 export interface ElectronParams {
   electron: ElectronApi;
@@ -16,6 +16,13 @@ interface EmittersPool {
 
 type BrowserWindowFactory = (...args: unknown[]) => BrowserWindow;
 
+// Communication channels
+const Channels = {
+  Results: 'annotatron:results',
+  Errors: 'annotatron:errors',
+  Events: 'annotatron:events',
+};
+
 // Will keep references (overwritten by class decorator)
 let emittersPool: EmittersPool;
 
@@ -28,10 +35,10 @@ export const emitEvent = (data: unknown): void => {
   if (emittersPool !== void 0) {
     // Notify all active renderers
     emittersPool.windows.forEach((win) => {
-      win.webContents.send('events', [data]);
+      win.webContents.send(Channels.Events, [data]);
     });
     // Notify observers on the main process
-    emittersPool.main.emit('events', [data]);
+    emittersPool.main.emit(Channels.Events, [data]);
   }
 };
 
@@ -58,10 +65,18 @@ const observeWindowFactory = (decoratedClass: any): void => {
   };
 };
 
-const resolveAnnotations = (metadataKey: string, type: Type<unknown>, main: ElectronMainEmitter): void => {
-  const observedTypes = (Reflect.getMetadata(metadataKey, type) || {}) as Record<string, string[]>;
-  const instance = Injector.resolve(type) as any;
-  const channel = metadataKey.replace('metadata:', '');
+/**
+ * Resolves provider annotations into call to the proper event listener APIs of
+ * the main process
+ *
+ * @param metadataKey the annotation key (Commands, Queries, Events)
+ * @param provider the class of the application provider
+ * @param main reference to electron's main process
+ */
+const resolveAnnotations = (metadataKey: string, provider: Type<unknown>, main: ElectronMainEmitter): void => {
+  const observedTypes = (Reflect.getMetadata(metadataKey, provider) || {}) as Record<string, string[]>;
+  const instance = Injector.resolve(provider) as any;
+  const channel = metadataKey;
 
   Object.keys(observedTypes).forEach((typeName) => {
     const eventName = `${channel}:${typeName}`;
@@ -69,8 +84,6 @@ const resolveAnnotations = (metadataKey: string, type: Type<unknown>, main: Elec
 
     targetMethods.forEach((method) => {
       main.on(eventName, (evt, args) => {
-        const resultsChannel = `${channel}:results`;
-        const errorsChannel = `${channel}:errors`;
         try {
           // TODO: check for message shape? ({ type, payload })
           const payload = args[0].payload;
@@ -78,13 +91,13 @@ const resolveAnnotations = (metadataKey: string, type: Type<unknown>, main: Elec
 
           if (isPromise(result)) {
             result
-              .then((value) => evt.sender.send(resultsChannel, [value]))
-              .catch((error) => evt.sender.send(errorsChannel, [error]));
+              .then((value) => evt.sender.send(Channels.Results, [value]))
+              .catch((error) => evt.sender.send(Channels.Errors, [error]));
           } else if (result) {
-            evt.sender.send(resultsChannel, [result]);
+            evt.sender.send(Channels.Results, [result]);
           }
         } catch (error) {
-          evt.sender.send(errorsChannel, [error]);
+          evt.sender.send(Channels.Errors, [error]);
         }
       });
     });
@@ -99,14 +112,13 @@ export const ElectronApplication = (params: ElectronParams): GenericClassDecorat
   return (target: Type<unknown>): unknown => {
     emittersPool = { main: params.electron.ipcMain, windows: [] };
 
-    const types = params.providers;
+    const providers = params.providers;
     const mainEmitter = params.electron.ipcMain;
 
-    types.forEach((type) => {
-      resolveAnnotations(COMMANDS_METADATA_KEY, type, mainEmitter);
-      resolveAnnotations(QUERIES_METADATA_KEY, type, mainEmitter);
-      // TODO: events are special (only listen, return value is not an event)
-      resolveAnnotations(EVENTS_METADATA_KEY, type, mainEmitter);
+    providers.forEach((provider) => {
+      resolveAnnotations(COMMANDS_METADATA_KEY, provider, mainEmitter);
+      resolveAnnotations(QUERIES_METADATA_KEY, provider, mainEmitter);
+      resolveAnnotations(EVENTS_METADATA_KEY, provider, mainEmitter);
     });
 
     // All windows created with the window factory will get connected to events

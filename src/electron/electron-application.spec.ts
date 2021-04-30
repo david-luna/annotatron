@@ -50,8 +50,8 @@ describe('The @ElectronApplication decorator', () => {
     }
 
     expect(ipcMainMock.on).toHaveBeenCalledTimes(3);
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(1, 'commands:my-command', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(2, 'queries:my-query', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(3, 'events:my-event', expect.any(Function));
+    expect(ipcMainMock.on).toHaveBeenNthCalledWith(1, 'annotatron:commands:my-command', expect.any(Function));
+    expect(ipcMainMock.on).toHaveBeenNthCalledWith(2, 'annotatron:queries:my-query', expect.any(Function));
+    expect(ipcMainMock.on).toHaveBeenNthCalledWith(3, 'annotatron:events:my-event', expect.any(Function));
   });
 });

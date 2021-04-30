@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import { GenericMethodDecorator, Type } from '../types';
 
-export const COMMANDS_METADATA_KEY = 'metadata:commands';
-export const QUERIES_METADATA_KEY = 'metadata:queries';
-export const EVENTS_METADATA_KEY = 'metadata:events';
+export const COMMANDS_METADATA_KEY = 'annotatron:commands';
+export const QUERIES_METADATA_KEY = 'annotatron:queries';
+export const EVENTS_METADATA_KEY = 'annotatron:events';
 
 /**
  * Creates a decorator that saves the names of the methods listening for a specific type
