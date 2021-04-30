@@ -18,6 +18,6 @@ deploy:
     secure: lB9CTLmti3jhALIftgkSzAeZXFIZ05eedDiNT58ARg+stmAVVNb7WMMVL26kLUNkcT/K490MoQDJsrO+v/YHmZOGokZsElcQ3e8dVL0cZPbOfvaD9jGEQvBsFtfKC5sHszZwG+8pvyomogg3Ch6+SYL9LPSykak1H1CydCaKQE/rS+YiVtnmR5khEjfVui1F95H3DnD0QoDgDq9nT8nztIoFpDPeActPZDz7Ny4BtPNpjeo90OHLmVZVRiKOzfhE5grPLzy2Hi+49BheTUiYXTqGMzu4mXJcBIuT1xwk+/jiSVoC+GlTbuW/x3xxe6r3MMAKlqdSo6oocYm7NBoVCHWQHZy1aePVnGD4saqeWOp3/GlmvxEUMpQnjcLfIpD4KI7HItEyrBaCne8avAWMrq4KTf+RL94ziHG0dTw4HNh4LiMldMVTZ4+QjjdA0C58Ag2EvRIvWmz3KzZp4UMlPJogD77I7ttYDzOFFE0MvCv8bO28ZfmkeN+ZIR65XaHUu3m++fKmSATFlwQVMMCT/yOhDAr8nSMEL4SecsLa0Nnu9TT/bx3zZoQ83razhQ+evlHLry/kY7Hd64K/QHrkJ4hzv/PUKt5OAE4G/i07tW6CdLs94RVgN/6WAKnyNWrj3Bomq7wu5yezs5CzoSbaoopGs70GU+Y1+F4m34JB82k=
   skip_cleanup: true
   on:
-    repo: david-luna/csset
+    repo: david-luna/annotatron
     tags: true
     all_branches: true
