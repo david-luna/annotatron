@@ -1,23 +1,22 @@
 language: node_js
 node_js:
-  - stable
+- stable
 cache: npm
 branches:
   only:
   - main
   - "/\\d+\\.\\d+\\.\\d+/"
 script:
-  - npm test
-  - npm run lcov
-  - npm run build
+- npm test
+- npm run lcov
+- npm run build
 deploy:
   provider: npm
-  edge: true
-  email: "$NPM_EMAIL"
+  email: luna.bistuer@gmail.com
   api_key:
-    secure: lB9CTLmti3jhALIftgkSzAeZXFIZ05eedDiNT58ARg+stmAVVNb7WMMVL26kLUNkcT/K490MoQDJsrO+v/YHmZOGokZsElcQ3e8dVL0cZPbOfvaD9jGEQvBsFtfKC5sHszZwG+8pvyomogg3Ch6+SYL9LPSykak1H1CydCaKQE/rS+YiVtnmR5khEjfVui1F95H3DnD0QoDgDq9nT8nztIoFpDPeActPZDz7Ny4BtPNpjeo90OHLmVZVRiKOzfhE5grPLzy2Hi+49BheTUiYXTqGMzu4mXJcBIuT1xwk+/jiSVoC+GlTbuW/x3xxe6r3MMAKlqdSo6oocYm7NBoVCHWQHZy1aePVnGD4saqeWOp3/GlmvxEUMpQnjcLfIpD4KI7HItEyrBaCne8avAWMrq4KTf+RL94ziHG0dTw4HNh4LiMldMVTZ4+QjjdA0C58Ag2EvRIvWmz3KzZp4UMlPJogD77I7ttYDzOFFE0MvCv8bO28ZfmkeN+ZIR65XaHUu3m++fKmSATFlwQVMMCT/yOhDAr8nSMEL4SecsLa0Nnu9TT/bx3zZoQ83razhQ+evlHLry/kY7Hd64K/QHrkJ4hzv/PUKt5OAE4G/i07tW6CdLs94RVgN/6WAKnyNWrj3Bomq7wu5yezs5CzoSbaoopGs70GU+Y1+F4m34JB82k=
-  skip_cleanup: true
+    secure: AZimpa85eficSCPSefDtPbNEQRTkmK0G0yCPbBDuKkq4MTHQ0/L6JY/Gi9S7h5/vJAGMWdejYpqcc8fmN1WVhYiTBh09YyUXBQROjKJUEVdF+cMcORHoz/3Jq5QsU/PI8ZB++cRRUZqpmaEDYFvAEL55ci58Otxlaz8l0a0a15inSL9/RdywiA6nl/68nvq9TSvJ70t9MKuToKLZMcM0uqOD2BzVfGcSxHlMiVLkmo1w+W7tOsOBRHAflpkOlUye7F5bRROjTglECWm4TP2EtzuZy1xSY5RRV6tchMqZn+JAYzshAIQetqW/3bFDMKbHxMV3EscJG4q2jh2DyQoI3IjKkPHuiv3fhAwEJF8Linjk92Ar9trzwiwmS6fooUoqm91pQTtNgG7dVEO6n6t2GUOiJEvNqklQbEHHsXiCTIluhHDJxgLHtWnrhkA8Ru7GMo5nYXi7n15tlIGBHYkLbkcaw9MbWl7tBmYyRqFTks2YPj0mw9Z719cOLmo+J0f1u+QAKx0aij0JeaTNOKLnP6kU/8P+tYHDb0g72cGPPmzDZntt48JXINBbKktg6hRfSBjzbYgrPb9zBuCk3cphaeJbRz/vbMNUbC43H4ttd/TH8XjVK7wMU5donvhnkGBTLPPWN9z4V9KfDKYM9/5xPPJgRhBidGTi6xas8V03+j0=
   on:
-    repo: david-luna/annotatron
     tags: true
-    all_branches: true
+    repo: david-luna/annotatron
+    branch: main
+  skip_cleanup: 'true'
