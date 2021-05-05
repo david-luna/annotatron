@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable max-classes-per-file */
 import 'reflect-metadata';
-import { Injectable, Injector } from '../injectable';
+import { Injectable } from '../injectable';
 import { Command, Event, Query } from './command-query-event';
 import { ElectronModule } from './electron-module';
 import { bootstrapModule } from './bootstrap-module';
