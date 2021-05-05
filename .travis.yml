@@ -12,7 +12,7 @@ script:
 - npm run build
 deploy:
   provider: npm
-  email: luna.bistuer@gmail.com
+  email: "$NPM_EMAIL"
   api_key:
     secure: AZimpa85eficSCPSefDtPbNEQRTkmK0G0yCPbBDuKkq4MTHQ0/L6JY/Gi9S7h5/vJAGMWdejYpqcc8fmN1WVhYiTBh09YyUXBQROjKJUEVdF+cMcORHoz/3Jq5QsU/PI8ZB++cRRUZqpmaEDYFvAEL55ci58Otxlaz8l0a0a15inSL9/RdywiA6nl/68nvq9TSvJ70t9MKuToKLZMcM0uqOD2BzVfGcSxHlMiVLkmo1w+W7tOsOBRHAflpkOlUye7F5bRROjTglECWm4TP2EtzuZy1xSY5RRV6tchMqZn+JAYzshAIQetqW/3bFDMKbHxMV3EscJG4q2jh2DyQoI3IjKkPHuiv3fhAwEJF8Linjk92Ar9trzwiwmS6fooUoqm91pQTtNgG7dVEO6n6t2GUOiJEvNqklQbEHHsXiCTIluhHDJxgLHtWnrhkA8Ru7GMo5nYXi7n15tlIGBHYkLbkcaw9MbWl7tBmYyRqFTks2YPj0mw9Z719cOLmo+J0f1u+QAKx0aij0JeaTNOKLnP6kU/8P+tYHDb0g72cGPPmzDZntt48JXINBbKktg6hRfSBjzbYgrPb9zBuCk3cphaeJbRz/vbMNUbC43H4ttd/TH8XjVK7wMU5donvhnkGBTLPPWN9z4V9KfDKYM9/5xPPJgRhBidGTi6xas8V03+j0=
   on:
