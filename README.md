@@ -1,6 +1,6 @@
 # annotatron
 
-Set of helper annotations for electron projects.
+Set of helper annotations for electron projects inspired by the Angular module decorators.
 
 [![GitHub license](https://img.shields.io/npm/l/annotatron.svg)](https://github.com/david-luna/annotatron/blob/master/README.md)
 [![Issues](https://img.shields.io/github/issues/david-luna/annotatron.svg)](https://github.com/david-luna/annotatron/issues)
@@ -12,26 +12,44 @@ Set of helper annotations for electron projects.
 ## Usage
 
 
-### Application setup
+### ApplicationModule setup
 
-Create a new class and decorate with @ElectronApplication. That class must have a static method called `createWindow` which should be used to create browser windows. All browser windows create with this method will be capable to communicate with the main process.
+Create a module class for your electron application and use the `@ElectronModule` decorator to define:
+- dependencies with other modules via `imports` parameter.
+- direct dependencies to other classes via `providers` parameter.
 
 ```typescript
-// file: my-electron-application.ts
+// file: my-electron-application.module.ts
 import * as electron from 'electron';
-import { ElectronApplication } from 'annotatron';
+import { ElectronModule } from 'annotatron';
+import { MySubModule } from './path/to/my-sub-module.ts';
 import { MyProvider } from './path/to/my-provider.ts';
 
-@ElectronApplication({
-  electron: electronMock,
+@ElectronModule({
+  imports: [MySubModule]
   providers: [MyProvider],
 })
-export class MyElectronApplication {
-  static createWindow(options: electron.BrowserWindowOptions): electron.BrowserWindow {
-    return new electron.BrowserWindow(options);
-  }
+export class MyElectronApplicationModule {
 }
 ```
+
+After doing this you are now capable of bootstrapping the application using `bootstrapModule` method. Usually this is don in the index file. You may want to use `connectWindow` method to allow your app windows to receive events from the main process.
+
+NOTE: events are messages emitted without the need to respond to a query or a command. They are useful to notify something that is happening on the system
+
+```typescript
+// file: index.ts
+import { ipcMain } from 'electron';
+import { bootstrapModule, connectWindow } from 'annotatron'
+import { MyElectronApplicationModule } from './app';
+
+
+// Bootstrap
+bootstrapModule(MyElectronApplicationModule, ipcMain);
+
+/// rest of the index boilerplate
+```
+
 
 ### Listening in the main process
 
@@ -65,6 +83,7 @@ export class MyProvider {
 ```
 
 The annotations expect that messages for commands, queries and events to have the following interface.
+
 ```typescript
 interface CommandQueryOrEvent {
   type: string;  // decorators refer to this property
@@ -74,7 +93,7 @@ interface CommandQueryOrEvent {
 
 ### Emitting events
 
-Whenever you want to emit an event to let other components know that something happened you may use the `emitEvent` method. This will broadcast to the main process and all the windows created via the static method `createWindow` mentioned above.
+Whenever you want to emit an event to let other components know that something happened you may use the `emitEvent` method. This will broadcast to the main process and all the windows connected to the main process using the `connectWindow` api.
 
 ```typescript
 // file: my-class.ts
@@ -94,12 +113,10 @@ export class MyClass {
 
 Commands and Queries are meant to be fired from browser windows to the main process. Also this lib is meant to work with windows with [context isolation](https://www.electronjs.org/docs/tutorial/context-isolation) enabled and with the [remote module](https://www.electronjs.org/docs/api/remote) disabled. Therefore you must provide a preload script to create a communication bridge.
 
-- Commands must be sent to the ipcMain process using `annotation:commands` channel.
-- Command results are sent back to the ipcRender through the `annotation:commands:results` channel.
-- Command errors are sent back to the ipcRender through the `annotation:commands:errors` channel.
-- Queries must be sent to the ipcMain process using `annotation:queries` channel.
-- Query results are sent back to the ipcRender through the `annotation:queries:results` channel.
-- Query errors are sent back to the ipcRender through the `annotation:queries:errors` channel.
+- Commands must be sent to the ipcMain process using `annotation:commands:${type}` channel where the type is the string you added in the `@Command` decorator.
+- Queries must be sent to the ipcMain process using `annotation:queries:${type}` channel where the type is the string you added in the `@query` decorator.
+- Command/Queries results are sent back to the ipcRender through the `annotation:results` channel.
+- Command/Queries errors are sent back to the ipcRender through the `annotation:errors` channel.
 - Events are sent to browser windows through the `annotation:events` channel.
 
 A sample preload script could be:
@@ -126,8 +143,8 @@ const observableLike = (key) => {
 contextBridge.exposeInMainWorld(
   'mainProcess',
   {
-    sendCommand: (command) => ipcRenderer.send(`annotatron:commands`, [command]),
-    sendQuery  : (query)   => ipcRenderer.send(`annotatron:queries` , [query]),
+    sendCommand: (command) => ipcRenderer.send(`annotatron:commands:${command.type}`, [command]),
+    sendQuery  : (query)   => ipcRenderer.send(`annotatron:queries:${query.type}`   , [query]),
     results$   : observableLike('results'),
     errors$    : observableLike('errors'),
     events$    : observableLike('events'),
@@ -142,6 +159,7 @@ Point to that file in the `preload` option when creating a window and you and yo
 
 * Injection annotations
 * Messaging annotations
-* Application annotations
+* Module annotations
+* connect window method
 * event emitter method
 

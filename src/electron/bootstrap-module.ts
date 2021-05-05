@@ -1,6 +1,6 @@
 import { Type, isPromise } from '../types';
 import { MODULE_METADATA_KEY, MODULE_IMPORTS_KEY, MODULE_PROVIDERS_KEY } from './electron-module';
-import { ElectronMainEmitter } from './electron-types';
+import { ElectronMainEmitter, BrowserWindow } from './electron-types';
 import { Injector } from '../injectable';
 import { COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY } from './command-query-event';
 
@@ -9,6 +9,33 @@ const Channels = {
   Results: 'annotatron:results',
   Errors: 'annotatron:errors',
   Events: 'annotatron:events',
+};
+
+// Will keep references (overwritten by class decorator)
+let mainEmitter: ElectronMainEmitter;
+let browserWindows: BrowserWindow[];
+
+/**
+ * Returns a list of the providers of the given module along with the providers of its sub-modules
+ * if it has
+ *
+ * @param moduleWithProviders the module from where we want to extract providers
+ * @returns a list od providers from the module and its sub-modules
+ */
+const getProviders = (moduleWithProviders: Type<unknown>): Type<unknown>[] => {
+  // Check if it's a module
+  const isModule = Reflect.getMetadata(MODULE_METADATA_KEY, moduleWithProviders) as boolean;
+
+  if (!isModule) {
+    throw new Error(`Imported class ${moduleWithProviders.name} is not a module`);
+  }
+
+  const imports = Reflect.getMetadata(MODULE_IMPORTS_KEY, moduleWithProviders) as Type<unknown>[];
+  const providers = Reflect.getMetadata(MODULE_PROVIDERS_KEY, moduleWithProviders) as Type<unknown>[];
+
+  return imports
+    .reduce((acc, mod) => acc.concat(getProviders(mod)), providers)
+    .filter((provider, index, list) => list.indexOf(provider) === index);
 };
 
 /**
@@ -68,26 +95,29 @@ const connectProvider = (provider: Type<unknown>, emitter: ElectronMainEmitter):
 };
 
 /**
- * Returns a list of the providers of the given module along with the providers of its sub-modules
- * if it has
+ * Adds the passed window object in the list of windows to be notified with events
  *
- * @param moduleWithProviders the module from where we want to extract providers
- * @returns a list od providers from the module and its sub-modules
+ * @param windowInstance an electron browser window object
  */
-const getProviders = (moduleWithProviders: Type<unknown>): Type<unknown>[] => {
-  // Check if it's a module
-  const isModule = Reflect.getMetadata(MODULE_METADATA_KEY, moduleWithProviders) as boolean;
+export const connectWindow = (windowInstance: BrowserWindow): void => {
+  browserWindows.push(windowInstance);
+  windowInstance.on('closed', () => {
+    browserWindows.splice(browserWindows.indexOf(windowInstance), 1);
+  });
+};
 
-  if (!isModule) {
-    throw new Error(`Imported class ${moduleWithProviders.name} is not a module`);
+/**
+ * Sends a message to the events channel and the connected browser windows
+ *
+ * @param data event data
+ */
+export const emitEvent = (data: unknown): void => {
+  if (mainEmitter !== void 0) {
+    mainEmitter.emit(Channels.Events, [data]);
+    browserWindows.forEach((windowInstance) => {
+      windowInstance.webContents.send(Channels.Events, [data]);
+    });
   }
-
-  const imports = Reflect.getMetadata(MODULE_IMPORTS_KEY, moduleWithProviders) as Type<unknown>[];
-  const providers = Reflect.getMetadata(MODULE_PROVIDERS_KEY, moduleWithProviders) as Type<unknown>[];
-
-  return imports
-    .reduce((acc, mod) => acc.concat(getProviders(mod)), providers)
-    .filter((provider, index, list) => list.indexOf(provider) === index);
 };
 
 /**
@@ -100,5 +130,7 @@ const getProviders = (moduleWithProviders: Type<unknown>): Type<unknown>[] => {
 export const bootstrapModule = (targetModule: Type<unknown>, emitter: ElectronMainEmitter): void => {
   const providers = getProviders(targetModule);
 
+  mainEmitter = emitter;
+  browserWindows = [];
   providers.forEach((provider) => connectProvider(provider, emitter));
 };
