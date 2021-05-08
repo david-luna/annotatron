@@ -4,7 +4,7 @@ Set of helper annotations for electron projects inspired by the Angular module d
 
 [![GitHub license](https://img.shields.io/npm/l/annotatron.svg)](https://github.com/david-luna/annotatron/blob/master/README.md)
 [![Issues](https://img.shields.io/github/issues/david-luna/annotatron.svg)](https://github.com/david-luna/annotatron/issues)
-[![Build Status](https://travis-ci.org/david-luna/annotatron.svg?branch=master)](https://travis-ci.org/david-luna/annotatron)
+[![Build Status](https://img.shields.io/travis/com/david-luna/annotatron)](https://www.travis-ci.com/github/david-luna/annotatron)
 [![Coverage Status](https://coveralls.io/repos/github/david-luna/annotatron/badge.svg)](https://coveralls.io/github/david-luna/annotatron)
 ![Code Size](https://img.shields.io/bundlephobia/minzip/annotatron.svg)
 ![Weekly downloads](https://img.shields.io/npm/dw/annotatron.svg)
