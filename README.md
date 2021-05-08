@@ -63,14 +63,14 @@ import { Injectable, Command, Query, Event } from 'annotatron';
 export class MyProvider {
   @Command('my-command')
   commandHandler(command: any): any {
-    // do something with the command and depending on th return value:
+    // do something with the command and depending on the return value:
     // - if a truthy value is returned is going to be emitted as a command result
     // - if a promise is returned is going to emit its resolved value as a command result
     // - if there is an exception or a rejected promise is going to emit the error/rejected value as a command error
   }
   @Query('my-query')
   queryHandler(query: any): any {
-    // do something with the query and depending on th return value:
+    // do something with the query and depending on the return value:
     // - if a truthy value is returned is going to be emitted as a query result
     // - if a promise is returned is going to emit its resolved value as a query result
     // - if there is an exception or a rejected promise is going to emit the error/rejected value as a query error
@@ -154,6 +154,14 @@ contextBridge.exposeInMainWorld(
 Point to that file in the `preload` option when creating a window and you and your renderer process (the UI) will have a global property name `mainProcess` which has all the tolls for communicating with the main process.
 
 ## Release notes
+
+### [0.0.5]
+
+* fix problem in package publishing
+
+### [0.0.2]
+
+* bootstrap module method
 
 ### [0.0.1]
 
