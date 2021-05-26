@@ -53,10 +53,13 @@ describe('The static Injector', () => {
     Injector.register(StubbedClassB, { overrides: StubbedClassA });
 
     const instanceObjectA = Injector.resolve(StubbedClassA);
+    const instanceObjectB = Injector.resolve(StubbedClassB);
 
     expect(instanceObjectA).toBeDefined();
+    expect(instanceObjectB).toBeDefined();
     expect(instanceObjectA instanceof StubbedClassA).not.toBeTruthy();
     expect(instanceObjectA instanceof StubbedClassB).toBeTruthy();
+    expect(instanceObjectB instanceof StubbedClassB).toBeTruthy();
   });
 
   it('should throw an error when attempting to fetch a dependency that does not exist', () => {

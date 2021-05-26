@@ -16,13 +16,23 @@ export class Injector {
   private static instancesVault = new Map<Function, object>();
 
   static register(constructorFunction: Function, params?: InjectableParams): void {
-    const token = params?.overrides ?? constructorFunction;
+    // const token = params?.overrides ?? constructorFunction;
 
-    if (!Injector.dependenciesVault.has(token)) {
-      const constructorParams = Reflect.getMetadata('design:paramtypes', constructorFunction) || [];
+    // if (!Injector.dependenciesVault.has(token)) {
+    //   const constructorParams = Reflect.getMetadata('design:paramtypes', constructorFunction) || [];
 
-      Injector.dependenciesVault.set(token, { constructorFunction, constructorParams });
-    }
+    //   Injector.dependenciesVault.set(token, { constructorFunction, constructorParams });
+    // }
+    const tokens = [params?.overrides, constructorFunction];
+
+    tokens
+      .filter((token) => !!token && !Injector.dependenciesVault.has(token))
+      .forEach((token) => {
+        const constructorParams = Reflect.getMetadata('design:paramtypes', constructorFunction) || [];
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        Injector.dependenciesVault.set(token!, { constructorFunction, constructorParams });
+      });
   }
   /**
    * Resolves instances by injecting required services
