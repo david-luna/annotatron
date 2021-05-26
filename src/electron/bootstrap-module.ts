@@ -1,8 +1,13 @@
 import { Type, isPromise } from '../types';
-import { MODULE_METADATA_KEY, MODULE_IMPORTS_KEY, MODULE_PROVIDERS_KEY } from './electron-module';
+import { MODULE_METADATA_KEY, MODULE_IMPORTS_KEY, MODULE_PROVIDERS_KEY, ModuleProvider } from './electron-module';
 import { ElectronMainEmitter, BrowserWindow } from './electron-types';
 import { Injector } from '../injectable';
 import { COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY } from './command-query-event';
+
+// Type guard
+const isType = (provider: ModuleProvider): provider is Type<unknown> => {
+  return provider.constructor.name !== 'Object';
+};
 
 // Communication channels
 const Channels = {
@@ -78,12 +83,23 @@ const connectMethod = (instance: unknown, method: string, eventName: string, emi
  * @param provider the provider to connect to the main process if annotated properly
  * @param emitter the main process emitter (ipcMain)
  */
-const connectProvider = (provider: Type<unknown>, emitter: ElectronMainEmitter): void => {
+const connectProvider = (provider: ModuleProvider, emitter: ElectronMainEmitter): void => {
+  const providerClass = isType(provider) ? provider : provider.provide;
+  const overrideClass = isType(provider) ? void 0 : provider.useClass;
+
+  if (overrideClass) {
+    console.log('overriding');
+    Injector.register(providerClass, { overrides: overrideClass });
+  }
+
   const streams = [COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY];
-  const instance = Injector.resolve(provider);
+  console.log('resolving', overrideClass || providerClass);
+  const instance = Injector.resolve(overrideClass || providerClass);
 
   streams.forEach((stream) => {
-    const streamObservers = (Reflect.getMetadata(stream, provider) || {}) as Record<string, string[]>;
+    const observerClass = overrideClass || providerClass;
+    console.log('about to observe', observerClass);
+    const streamObservers = (Reflect.getMetadata(stream, observerClass) || {}) as Record<string, string[]>;
     const observedTypes = Object.keys(streamObservers);
 
     observedTypes.forEach((typeName) => {

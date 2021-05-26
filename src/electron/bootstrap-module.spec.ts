@@ -42,17 +42,31 @@ describe('The @ElectronModule decorator', () => {
       imports: [NonDecoratedClass],
       providers: [DecoratedClass],
     })
-    class MisconfiguredModuleClass {}
+    class MisconfiguredModuleClassOne {}
 
     try {
-      bootstrapModule(MisconfiguredModuleClass, ipcMainMock);
+      bootstrapModule(MisconfiguredModuleClassOne, ipcMainMock);
     } catch (error) {
       expect(error instanceof Error).toEqual(true);
       expect(error.message).toContain('is not a module');
       expect(ipcMainMock.on).not.toHaveBeenCalled();
     }
 
-    expect.assertions(3);
+    @ElectronModule({
+      imports: [DecoratedClass],
+      providers: [],
+    })
+    class MisconfiguredModuleClassTwo {}
+
+    try {
+      bootstrapModule(MisconfiguredModuleClassTwo, ipcMainMock);
+    } catch (error) {
+      expect(error instanceof Error).toEqual(true);
+      expect(error.message).toContain('is not a module');
+      expect(ipcMainMock.on).not.toHaveBeenCalled();
+    }
+
+    expect.assertions(6);
   });
 
   it('should throw an error if a provider is not injectable', () => {
@@ -72,7 +86,7 @@ describe('The @ElectronModule decorator', () => {
     expect.assertions(3);
   });
 
-  it('should do the bootstrap if modules properly configured', () => {
+  it('should do the bootstrap if provider properly configured with injectable classes', () => {
     @ElectronModule({
       providers: [DecoratedClass],
     })
@@ -93,6 +107,20 @@ describe('The @ElectronModule decorator', () => {
     expect(ipcMainMock.on).toHaveBeenNthCalledWith(4, 'annotatron:commands:my-command', expect.any(Function));
     expect(ipcMainMock.on).toHaveBeenNthCalledWith(5, 'annotatron:queries:my-query', expect.any(Function));
     expect(ipcMainMock.on).toHaveBeenNthCalledWith(6, 'annotatron:events:my-event', expect.any(Function));
+  });
+
+  it('should do the bootstrap if provider properly configured with useClass providers', () => {
+    @ElectronModule({
+      providers: [{ provide: DecoratedClass, useClass: AnotherDecoratedClass }],
+    })
+    class ModuleClass {}
+
+    bootstrapModule(ModuleClass, ipcMainMock);
+
+    expect(ipcMainMock.on).toHaveBeenCalledTimes(3);
+    expect(ipcMainMock.on).toHaveBeenNthCalledWith(1, 'annotatron:commands:my-command', expect.any(Function));
+    expect(ipcMainMock.on).toHaveBeenNthCalledWith(2, 'annotatron:queries:my-query', expect.any(Function));
+    expect(ipcMainMock.on).toHaveBeenNthCalledWith(3, 'annotatron:events:my-event', expect.any(Function));
   });
 
   it('should connect provider methods to messages properly', async () => {
