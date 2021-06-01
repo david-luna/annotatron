@@ -43,19 +43,4 @@ describe('The @ElectronModule decorator', () => {
     expect(Reflect.getMetadata(MODULE_PROVIDERS_KEY, ModuleClass)).toEqual([TestClass]);
     expect(Reflect.getMetadata(MODULE_IMPORTS_KEY, ModuleClass)).toEqual([SubModuleClass]);
   });
-
-  // TODO: decide if this validation goes here or in a different place
-  it.skip('should fail if an imported module is not properly decorated', () => {
-    try {
-      @ElectronModule({
-        imports: [TestClass],
-      })
-      class FailingModuleClass {}
-    } catch (error) {
-      expect(error instanceof TypeError).toEqual(true);
-      expect(error.message).toContain('must have be a module');
-    }
-
-    expect.assertions(2);
-  });
 });

@@ -49,8 +49,23 @@ describe('The static Injector', () => {
     expect(instanceObjectB instanceof StubbedClassB).toBeTruthy();
   });
 
-  it('should allow to override a type with another', () => {
+  it('should allow to override a type with another at registration', () => {
     Injector.register(StubbedClassB, { overrides: StubbedClassA });
+
+    const instanceObjectA = Injector.resolve(StubbedClassA);
+    const instanceObjectB = Injector.resolve(StubbedClassB);
+
+    expect(instanceObjectA).toBeDefined();
+    expect(instanceObjectB).toBeDefined();
+    expect(instanceObjectA instanceof StubbedClassA).not.toBeTruthy();
+    expect(instanceObjectA instanceof StubbedClassB).toBeTruthy();
+    expect(instanceObjectB instanceof StubbedClassB).toBeTruthy();
+  });
+
+  it('should allow to override a type with another after registration', () => {
+    Injector.register(StubbedClassA);
+    Injector.register(StubbedClassB);
+    Injector.overrideToken(StubbedClassA, StubbedClassB)
 
     const instanceObjectA = Injector.resolve(StubbedClassA);
     const instanceObjectB = Injector.resolve(StubbedClassB);

@@ -1,8 +1,8 @@
 import 'reflect-metadata';
-import { Type, GenericClassDecorator } from '../types';
+import { Type, GenericClassDecorator, AbstractType } from '../types';
 
 interface ModuleProviderWithClass {
-  provide: Type<unknown>;
+  provide: Type<unknown> | AbstractType<unknown>;
   useClass: Type<unknown>;
 }
 export type ModuleProvider = Type<unknown> | ModuleProviderWithClass;
