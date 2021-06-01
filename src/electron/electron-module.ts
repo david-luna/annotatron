@@ -1,5 +1,11 @@
 import 'reflect-metadata';
-import { Type, GenericClassDecorator } from '../types';
+import { Type, GenericClassDecorator, AbstractType } from '../types';
+
+interface ModuleProviderWithClass {
+  provide: Type<unknown> | AbstractType<unknown>;
+  useClass: Type<unknown>;
+}
+export type ModuleProvider = Type<unknown> | ModuleProviderWithClass;
 
 interface ImportsModuleParams {
   imports: Type<unknown>[];
@@ -8,7 +14,7 @@ interface ImportsModuleParams {
 
 interface ProvidersModuleParams {
   imports?: Type<unknown>[];
-  providers: Type<unknown>[];
+  providers: ModuleProvider[];
 }
 
 type PartialModuleParams = ImportsModuleParams | ProvidersModuleParams;

@@ -16,14 +16,34 @@ export class Injector {
   private static instancesVault = new Map<Function, object>();
 
   static register(constructorFunction: Function, params?: InjectableParams): void {
-    const token = params?.overrides ?? constructorFunction;
+    const tokens = [params?.overrides, constructorFunction];
 
-    if (!Injector.dependenciesVault.has(token)) {
-      const constructorParams = Reflect.getMetadata('design:paramtypes', constructorFunction) || [];
+    tokens
+      .filter((token) => !!token && !Injector.dependenciesVault.has(token))
+      .forEach((token) => {
+        const constructorParams = Reflect.getMetadata('design:paramtypes', constructorFunction) || [];
 
-      Injector.dependenciesVault.set(token, { constructorFunction, constructorParams });
-    }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        Injector.dependenciesVault.set(token!, { constructorFunction, constructorParams });
+      });
   }
+
+  static overrideToken(destinationToken: Function, sourceToken: Function): void {
+    [destinationToken, sourceToken].forEach((token) => {
+      if (!Injector.dependenciesVault.has(token)) {
+        throw new Error(
+          `A token with the [${token.prototype.constructor.name}] constructor could not be found in the injector.`,
+        );
+      }
+    });
+
+    // eslint-disable-next-line prettier/prettier
+    Injector.dependenciesVault.set(
+      destinationToken,
+      Injector.dependenciesVault.get(sourceToken) as Dependencies,
+    );
+  }
+
   /**
    * Resolves instances by injecting required services
    * @param {Type<T>} target

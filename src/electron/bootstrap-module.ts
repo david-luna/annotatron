@@ -1,8 +1,13 @@
 import { Type, isPromise } from '../types';
-import { MODULE_METADATA_KEY, MODULE_IMPORTS_KEY, MODULE_PROVIDERS_KEY } from './electron-module';
+import { MODULE_METADATA_KEY, MODULE_IMPORTS_KEY, MODULE_PROVIDERS_KEY, ModuleProvider } from './electron-module';
 import { ElectronMainEmitter, BrowserWindow } from './electron-types';
 import { Injector } from '../injectable';
 import { COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY } from './command-query-event';
+
+// Type guard
+const isType = (provider: ModuleProvider): provider is Type<unknown> => {
+  return provider.constructor.name !== 'Object';
+};
 
 // Communication channels
 const Channels = {
@@ -22,20 +27,28 @@ let browserWindows: BrowserWindow[];
  * @param moduleWithProviders the module from where we want to extract providers
  * @returns a list od providers from the module and its sub-modules
  */
-const getProviders = (moduleWithProviders: Type<unknown>): Type<unknown>[] => {
-  // Check if it's a module
+const resolveProviders = (moduleWithProviders: Type<unknown>): ModuleProvider[] => {
   const isModule = Reflect.getMetadata(MODULE_METADATA_KEY, moduleWithProviders) as boolean;
 
   if (!isModule) {
     throw new Error(`Imported class ${moduleWithProviders.name} is not a module`);
   }
 
-  const imports = Reflect.getMetadata(MODULE_IMPORTS_KEY, moduleWithProviders) as Type<unknown>[];
-  const providers = Reflect.getMetadata(MODULE_PROVIDERS_KEY, moduleWithProviders) as Type<unknown>[];
+  const moduleImports = Reflect.getMetadata(MODULE_IMPORTS_KEY, moduleWithProviders) as Type<unknown>[];
+  const moduleProviders = Reflect.getMetadata(MODULE_PROVIDERS_KEY, moduleWithProviders) as ModuleProvider[];
 
-  return imports
-    .reduce((acc, mod) => acc.concat(getProviders(mod)), providers)
+  const providersList = moduleImports
+    .reduce((acc, mod) => acc.concat(resolveProviders(mod)), moduleProviders)
     .filter((provider, index, list) => list.indexOf(provider) === index);
+
+  // Do token swapping (overrides)
+  providersList.forEach((provider) => {
+    if (!isType(provider)) {
+      Injector.overrideToken(provider.provide, provider.useClass);
+    }
+  });
+
+  return providersList;
 };
 
 /**
@@ -78,12 +91,15 @@ const connectMethod = (instance: unknown, method: string, eventName: string, emi
  * @param provider the provider to connect to the main process if annotated properly
  * @param emitter the main process emitter (ipcMain)
  */
-const connectProvider = (provider: Type<unknown>, emitter: ElectronMainEmitter): void => {
+const connectProvider = (provider: ModuleProvider, emitter: ElectronMainEmitter): void => {
+  const classToConnect = isType(provider) ? provider : provider.useClass;
+
   const streams = [COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY];
-  const instance = Injector.resolve(provider);
+  const instance = Injector.resolve(classToConnect);
 
   streams.forEach((stream) => {
-    const streamObservers = (Reflect.getMetadata(stream, provider) || {}) as Record<string, string[]>;
+    const observerClass = classToConnect;
+    const streamObservers = (Reflect.getMetadata(stream, observerClass) || {}) as Record<string, string[]>;
     const observedTypes = Object.keys(streamObservers);
 
     observedTypes.forEach((typeName) => {
@@ -128,7 +144,7 @@ export const emitEvent = (data: unknown): void => {
  * @param emitter the main process emitter (ipcMain)
  */
 export const bootstrapModule = (targetModule: Type<unknown>, emitter: ElectronMainEmitter): void => {
-  const providers = getProviders(targetModule);
+  const providers = resolveProviders(targetModule);
 
   mainEmitter = emitter;
   browserWindows = [];
