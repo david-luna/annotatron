@@ -23,11 +23,21 @@ Create a module class for your electron application and use the `@ElectronModule
 import * as electron from 'electron';
 import { ElectronModule } from 'annotatron';
 import { MySubModule } from './path/to/my-sub-module.ts';
-import { MyProvider } from './path/to/my-provider.ts';
+import { MyService } from './path/to/my-service.ts';
+import { MyDataBaseApi } from './path/to/my-database-api.ts';
+import { MyDataBaseApiMongoImplementation } from './path/to/my-database-api-mongo-implementation.ts';
 
 @ElectronModule({
   imports: [MySubModule]
-  providers: [MyProvider],
+  providers: [
+    // you can pass a provider directly (typical for services)
+    MyProvider,
+    // or override a provider with another (for example to provide implementation details)
+    {
+      provide: MyDataBaseApi,
+      useClass: MyDataBaseApiMongoImplementation
+    },
+  ],
 })
 export class MyElectronApplicationModule {
 }
@@ -154,6 +164,11 @@ contextBridge.exposeInMainWorld(
 Point to that file in the `preload` option when creating a window and you and your renderer process (the UI) will have a global property name `mainProcess` which has all the tolls for communicating with the main process.
 
 ## Release notes
+
+### [0.1.0]
+
+* add new provider type with useClass
+
 
 ### [0.0.5]
 
