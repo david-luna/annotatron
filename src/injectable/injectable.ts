@@ -9,6 +9,8 @@ export interface InjectableParams {
   overrides?: Function;
 }
 
+export const INJECTED_METADATA_KEY = 'annotatron:injected';
+
 /**
  * @returns {GenericClassDecorator<Type<unknown>>}
  * @constructor
@@ -21,6 +23,7 @@ export const Injectable = (params?: InjectableParams): GenericClassDecorator<Typ
       console.log('Warning: Injectable params will be removed soon');
     }
     Injector.register(target, params);
+    Reflect.defineMetadata(INJECTED_METADATA_KEY, true, target.constructor);
 
     return target;
   };
