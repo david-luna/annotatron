@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import 'reflect-metadata';
 import { Type } from '../types';
-import { InjectableParams } from './injectable';
 
 interface Dependencies {
   constructorFunction: Function;
@@ -15,17 +14,10 @@ export class Injector {
   private static dependenciesVault = new Map<Function, Dependencies>();
   private static instancesVault = new Map<Function, object>();
 
-  static register(constructorFunction: Function, params?: InjectableParams): void {
-    const tokens = [params?.overrides, constructorFunction];
+  static register(constructorFunction: Function): void {
+    const constructorParams = Reflect.getMetadata('design:paramtypes', constructorFunction) || [];
 
-    tokens
-      .filter((token) => !!token && !Injector.dependenciesVault.has(token))
-      .forEach((token) => {
-        const constructorParams = Reflect.getMetadata('design:paramtypes', constructorFunction) || [];
-
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        Injector.dependenciesVault.set(token!, { constructorFunction, constructorParams });
-      });
+    Injector.dependenciesVault.set(constructorFunction, { constructorFunction, constructorParams });
   }
 
   static overrideToken(destinationToken: Function, sourceToken: Function): void {
@@ -36,6 +28,14 @@ export class Injector {
         );
       }
     });
+
+    const dependency = Injector.dependenciesVault.get(destinationToken) as Dependencies;
+
+    if (dependency.constructorFunction !== destinationToken) {
+      throw new Error(
+        `The token with the [${destinationToken.prototype.constructor.name}] constructor is already overridden.`,
+      );
+    }
 
     // eslint-disable-next-line prettier/prettier
     Injector.dependenciesVault.set(

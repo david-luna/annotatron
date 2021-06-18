@@ -275,7 +275,6 @@ describe('The @ElectronModule decorator', () => {
       expect(sendSpy).toHaveBeenCalledWith('annotatron:events', [eventData]);
       expect(ipcMainEmitSpy).toHaveBeenCalledTimes(2);
       expect(sendSpy).toHaveBeenCalledTimes(1);
-
     });
   });
 });

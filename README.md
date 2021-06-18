@@ -165,6 +165,11 @@ Point to that file in the `preload` option when creating a window and you and yo
 
 ## Release notes
 
+### [0.0.7]
+
+* add more checks in module bootstrapping
+
+
 ### [0.0.6]
 
 * add new provider type with useClass

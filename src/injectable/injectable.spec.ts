@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable max-classes-per-file */
-import { Injectable } from './injectable';
+import 'reflect-metadata';
+import { Injectable, INJECTED_METADATA_KEY } from './injectable';
 import { Injector } from './injector';
 
 jest.mock('./injector', () => ({
@@ -14,32 +15,27 @@ describe('The @Injectable decorator', () => {
 
   it('should instantiate any decorated class as is, without interfering its type', () => {
     @Injectable()
-    class TestClass {}
+    class ConstructorTestClass {}
 
-    const testObject = new TestClass();
-    expect(testObject instanceof TestClass).toBeTruthy();
+    const testObject = new ConstructorTestClass();
+    expect(testObject instanceof ConstructorTestClass).toBeTruthy();
+  });
+
+  it('should add metadata to the decorated class constructor', () => {
+    @Injectable()
+    class MetadataTestClass {}
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const target = MetadataTestClass as any;
+    const metadata = Reflect.getMetadata(INJECTED_METADATA_KEY, target);
+
+    expect(metadata).toEqual(true);
   });
 
   it('should register the decorated class constructor type through the Injector.register() static method', () => {
     @Injectable()
-    class TestClass {}
+    class RegisterTestClass {}
 
-    const testObject = new TestClass();
-    expect(Injector.register).toHaveBeenCalledWith(TestClass, undefined);
-  });
-
-  // eslint-disable-next-line max-len
-  it('should register the decorated class constructor type along with a replacement type if any', () => {
-    @Injectable({ overrides: String })
-    class TestClass {}
-
-    const testObject = new TestClass();
-    expect(Injector.register).toHaveBeenCalledWith(TestClass, { overrides: String });
-  });
-
-  it('should NOT register the decorated class if the constructorFunction is undefined', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Injectable()(undefined as any);
-    expect(Injector.register).not.toHaveBeenCalledWith(undefined);
+    expect(Injector.register).toHaveBeenCalledWith(RegisterTestClass);
   });
 });
