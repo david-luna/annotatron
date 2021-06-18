@@ -165,7 +165,7 @@ Point to that file in the `preload` option when creating a window and you and yo
 
 ## Release notes
 
-### [0.0.7]
+### [0.0.8]
 
 * add more checks in module bootstrapping
 
