@@ -47,7 +47,7 @@ describe('bootstrapResolveProviders', () => {
     expect.assertions(4);
   });
 
-  it('should throw an error if a provider is not injectable', () => {
+  it('should throw an error if a regular provider is not injectable', () => {
     class NonDecoratedProviderClass {}
     @ElectronModule({
       providers: [NonDecoratedProviderClass],
@@ -61,6 +61,10 @@ describe('bootstrapResolveProviders', () => {
       expect(error.message).toContain('is not registered using the @Injectable decorator');
     }
 
+    expect.assertions(2);
+  });
+
+  it('should throw an error if a useClass provider is not injectable', () => {
     class NonDecoratedProviderToBeOverriddenClass {}
     class NonDecoratedProviderOverrideClass {}
     @ElectronModule({
@@ -77,10 +81,10 @@ describe('bootstrapResolveProviders', () => {
       bootstrapResolveProviders(AnotherBadProviderModuleClass);
     } catch (error) {
       expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('could not be found in the injector');
+      expect(error.message).toContain('is not registered');
     }
 
-    expect.assertions(4);
+    expect.assertions(2);
   });
 
   it('should NOT throw if provider properly configured with injectable classes', () => {
@@ -100,6 +104,38 @@ describe('bootstrapResolveProviders', () => {
     class ModuleClass {}
 
     expect(() => bootstrapResolveProviders(ModuleClass)).not.toThrow();
+  });
+
+  it('should throw if provider misconfigured with useClass providers', () => {
+    @Injectable()
+    class DecoratedProviderToBeOverriddenClass {}
+    @Injectable()
+    class DecoratedProviderWhichOverridesClass {}
+    @Injectable()
+    class DecoratedProviderWhichAlsoOverridesClass {}
+
+    @ElectronModule({
+      providers: [
+        {
+          provide: DecoratedProviderToBeOverriddenClass,
+          useClass: DecoratedProviderWhichOverridesClass,
+        },
+      ],
+    })
+    class ModuleClassWithOverride {}
+
+    @ElectronModule({
+      imports: [ModuleClassWithOverride],
+      providers: [
+        {
+          provide: DecoratedProviderToBeOverriddenClass,
+          useClass: DecoratedProviderWhichAlsoOverridesClass,
+        },
+      ],
+    })
+    class ModuleClassImportingOverride {}
+
+    expect(() => bootstrapResolveProviders(ModuleClassImportingOverride)).toThrow('is already overridden');
   });
 
   it('should NOT throw if provider properly configured with useClass providers', () => {

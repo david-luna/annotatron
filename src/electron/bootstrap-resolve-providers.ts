@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { Type } from '../types';
+import { Type, AbstractType } from '../types';
 import {
   MODULE_METADATA_KEY,
   MODULE_IMPORTS_KEY,
@@ -14,8 +14,13 @@ const isType = (provider: ModuleProvider): provider is Type<unknown> => {
   return provider.constructor.name !== 'Object';
 };
 
-const checkTypeProvider = (provider: Type<unknown>): void => {
-  const isInjected = Reflect.getMetadata(INJECTED_METADATA_KEY, provider) as boolean;
+const checkTypeProvider = (provider: Type<unknown> | AbstractType<unknown>): void => {
+  const isInjected = Reflect.getMetadata(INJECTED_METADATA_KEY, provider.constructor) as boolean;
+
+  console.log(provider, 'isInjected', isInjected);
+  console.log(Reflect.getMetadata(INJECTED_METADATA_KEY, provider.constructor));
+  console.log(Reflect.hasMetadata(INJECTED_METADATA_KEY, provider.constructor));
+  console.log(Reflect.getMetadataKeys(provider.constructor));
 
   if (isInjected) {
     return;
@@ -26,6 +31,9 @@ const checkTypeProvider = (provider: Type<unknown>): void => {
 
 const checkClassProvider = (provider: ModuleProviderWithClass, overriddenTokens: Map<unknown, unknown>): void => {
   const { provide, useClass } = provider;
+
+  checkTypeProvider(provide);
+  checkTypeProvider(useClass);
 
   if (overriddenTokens.has(provide)) {
     throw new Error(`Provider ${provide.name} is already overridden by ${useClass.name}`);

@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import 'reflect-metadata';
 import { Injector } from './injector';
+import { Injectable } from './injectable';
 
 class StubbedClassA {
   description = 'Test A';
@@ -10,10 +11,8 @@ class StubbedClassB {
   description = 'Test B';
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-class StubbedDepsClass {
-  description = 'Test C: Upstream dependencies';
-  constructor(public depA: StubbedClassA, public depB: StubbedClassB) {}
+class StubbedClassC {
+  description = 'Test C';
 }
 
 describe('The static Injector', () => {
@@ -49,8 +48,27 @@ describe('The static Injector', () => {
     expect(instanceObjectB instanceof StubbedClassB).toBeTruthy();
   });
 
-  it('should allow to override a type with another at registration', () => {
-    Injector.register(StubbedClassB, { overrides: StubbedClassA });
+  it('should allow to retrieve a singleton instance with dependencies', () => {
+    Injector.register(StubbedClassA);
+    Injector.register(StubbedClassB);
+    @Injectable()
+    class StubbedDepsClass {
+      description = 'Test C: Upstream dependencies';
+      constructor(public depA: StubbedClassA, public depB: StubbedClassB) {}
+    }
+
+    const instanceObjectWithDeps = Injector.resolve(StubbedDepsClass);
+
+    expect(instanceObjectWithDeps).toBeDefined();
+    expect(instanceObjectWithDeps instanceof StubbedDepsClass).toBeTruthy();
+    expect(instanceObjectWithDeps.depA instanceof StubbedClassA).toBeTruthy();
+    expect(instanceObjectWithDeps.depB instanceof StubbedClassB).toBeTruthy();
+  });
+
+  it('should allow to override a type with another after registration', () => {
+    Injector.register(StubbedClassA);
+    Injector.register(StubbedClassB);
+    Injector.overrideToken(StubbedClassA, StubbedClassB);
 
     const instanceObjectA = Injector.resolve(StubbedClassA);
     const instanceObjectB = Injector.resolve(StubbedClassB);
@@ -62,19 +80,15 @@ describe('The static Injector', () => {
     expect(instanceObjectB instanceof StubbedClassB).toBeTruthy();
   });
 
-  it('should allow to override a type with another after registration', () => {
+  it('should NOT allow to override a type if already overridden', () => {
     Injector.register(StubbedClassA);
     Injector.register(StubbedClassB);
-    Injector.overrideToken(StubbedClassA, StubbedClassB)
+    Injector.register(StubbedClassC);
 
-    const instanceObjectA = Injector.resolve(StubbedClassA);
-    const instanceObjectB = Injector.resolve(StubbedClassB);
-
-    expect(instanceObjectA).toBeDefined();
-    expect(instanceObjectB).toBeDefined();
-    expect(instanceObjectA instanceof StubbedClassA).not.toBeTruthy();
-    expect(instanceObjectA instanceof StubbedClassB).toBeTruthy();
-    expect(instanceObjectB instanceof StubbedClassB).toBeTruthy();
+    expect(() => {
+      Injector.overrideToken(StubbedClassA, StubbedClassB);
+      Injector.overrideToken(StubbedClassA, StubbedClassC);
+    }).toThrow('already overridden');
   });
 
   it('should throw an error when attempting to fetch a dependency that does not exist', () => {
