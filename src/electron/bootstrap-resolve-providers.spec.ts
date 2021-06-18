@@ -14,7 +14,7 @@ describe('bootstrapResolveProviders', () => {
     jest.clearAllMocks();
   });
 
-  it('should throw an error if importing a non module class', () => {
+  it('should throw an error if importing a non decorated class', () => {
     class NonDecoratedModuleClass {}
     @ElectronModule({
       imports: [NonDecoratedModuleClass],
@@ -22,13 +22,10 @@ describe('bootstrapResolveProviders', () => {
     })
     class MisconfiguredModuleClassOne {}
 
-    try {
-      bootstrapResolveProviders(MisconfiguredModuleClassOne);
-    } catch (error) {
-      expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('is not a module');
-    }
+    expect(() => bootstrapResolveProviders(MisconfiguredModuleClassOne)).toThrow('is not a module');
+  });
 
+  it('should throw an error if importing a wrongly decorated class', () => {
     @Injectable()
     class WronglyDecoratedModuleClass {}
     @ElectronModule({
@@ -37,14 +34,7 @@ describe('bootstrapResolveProviders', () => {
     })
     class MisconfiguredModuleClassTwo {}
 
-    try {
-      bootstrapResolveProviders(MisconfiguredModuleClassTwo);
-    } catch (error) {
-      expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('is not a module');
-    }
-
-    expect.assertions(4);
+    expect(() => bootstrapResolveProviders(MisconfiguredModuleClassTwo)).toThrow('is not a module');
   });
 
   it('should throw an error if a regular provider is not injectable', () => {
@@ -54,14 +44,7 @@ describe('bootstrapResolveProviders', () => {
     })
     class BadProviderModuleClass {}
 
-    try {
-      bootstrapResolveProviders(BadProviderModuleClass);
-    } catch (error) {
-      expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('is not registered using the @Injectable decorator');
-    }
-
-    expect.assertions(2);
+    expect(() => bootstrapResolveProviders(BadProviderModuleClass)).toThrow('is not registered');
   });
 
   it('should throw an error if a useClass provider is not injectable', () => {
@@ -77,14 +60,7 @@ describe('bootstrapResolveProviders', () => {
     })
     class AnotherBadProviderModuleClass {}
 
-    try {
-      bootstrapResolveProviders(AnotherBadProviderModuleClass);
-    } catch (error) {
-      expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('is not registered');
-    }
-
-    expect.assertions(2);
+    expect(() => bootstrapResolveProviders(AnotherBadProviderModuleClass)).toThrow('is not registered');
   });
 
   it('should NOT throw if provider properly configured with injectable classes', () => {

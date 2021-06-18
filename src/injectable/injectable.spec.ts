@@ -27,7 +27,7 @@ describe('The @Injectable decorator', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const target = MetadataTestClass as any;
-    const metadata = Reflect.getMetadata(INJECTED_METADATA_KEY, target.constructor);
+    const metadata = Reflect.getMetadata(INJECTED_METADATA_KEY, target);
 
     expect(metadata).toEqual(true);
   });

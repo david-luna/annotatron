@@ -15,12 +15,7 @@ const isType = (provider: ModuleProvider): provider is Type<unknown> => {
 };
 
 const checkTypeProvider = (provider: Type<unknown> | AbstractType<unknown>): void => {
-  const isInjected = Reflect.getMetadata(INJECTED_METADATA_KEY, provider.constructor) as boolean;
-
-  console.log(provider, 'isInjected', isInjected);
-  console.log(Reflect.getMetadata(INJECTED_METADATA_KEY, provider.constructor));
-  console.log(Reflect.hasMetadata(INJECTED_METADATA_KEY, provider.constructor));
-  console.log(Reflect.getMetadataKeys(provider.constructor));
+  const isInjected = Reflect.getMetadata(INJECTED_METADATA_KEY, provider) as boolean;
 
   if (isInjected) {
     return;

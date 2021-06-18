@@ -10,8 +10,7 @@ export const INJECTED_METADATA_KEY = 'annotatron:injected';
 export const Injectable = (): GenericClassDecorator<Type<unknown>> => {
   return (target: Type<unknown>): unknown => {
     Injector.register(target);
-    console.log('setting injectable for', target);
-    Reflect.defineMetadata(INJECTED_METADATA_KEY, true, target.constructor);
+    Reflect.defineMetadata(INJECTED_METADATA_KEY, true, target);
 
     return target;
   };
