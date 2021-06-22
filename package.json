@@ -1,6 +1,6 @@
 {
   "name": "annotatron",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "set of helper annotations for electron projects",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
