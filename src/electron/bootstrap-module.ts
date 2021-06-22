@@ -1,13 +1,10 @@
-import { Type, isPromise } from '../types';
-import { MODULE_METADATA_KEY, MODULE_IMPORTS_KEY, MODULE_PROVIDERS_KEY, ModuleProvider } from './electron-module';
-import { ElectronMainEmitter, BrowserWindow } from './electron-types';
 import { Injector } from '../injectable';
+import { Type, isPromise } from '../types';
+import { ModuleProvider } from './electron-module';
+import { ElectronMainEmitter, BrowserWindow } from './electron-types';
+import { bootstrapResolveProviders, isType } from './bootstrap-resolve-providers';
 import { COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY } from './command-query-event';
 
-// Type guard
-const isType = (provider: ModuleProvider): provider is Type<unknown> => {
-  return provider.constructor.name !== 'Object';
-};
 
 // Communication channels
 const Channels = {
@@ -19,37 +16,6 @@ const Channels = {
 // Will keep references (overwritten by class decorator)
 let mainEmitter: ElectronMainEmitter;
 let browserWindows: BrowserWindow[];
-
-/**
- * Returns a list of the providers of the given module along with the providers of its sub-modules
- * if it has
- *
- * @param moduleWithProviders the module from where we want to extract providers
- * @returns a list od providers from the module and its sub-modules
- */
-const resolveProviders = (moduleWithProviders: Type<unknown>): ModuleProvider[] => {
-  const isModule = Reflect.getMetadata(MODULE_METADATA_KEY, moduleWithProviders) as boolean;
-
-  if (!isModule) {
-    throw new Error(`Imported class ${moduleWithProviders.name} is not a module`);
-  }
-
-  const moduleImports = Reflect.getMetadata(MODULE_IMPORTS_KEY, moduleWithProviders) as Type<unknown>[];
-  const moduleProviders = Reflect.getMetadata(MODULE_PROVIDERS_KEY, moduleWithProviders) as ModuleProvider[];
-
-  const providersList = moduleImports
-    .reduce((acc, mod) => acc.concat(resolveProviders(mod)), moduleProviders)
-    .filter((provider, index, list) => list.indexOf(provider) === index);
-
-  // Do token swapping (overrides)
-  providersList.forEach((provider) => {
-    if (!isType(provider)) {
-      Injector.overrideToken(provider.provide, provider.useClass);
-    }
-  });
-
-  return providersList;
-};
 
 /**
  * Connects a method of a given provider to a specific event sent by the emitter
@@ -144,7 +110,7 @@ export const emitEvent = (data: unknown): void => {
  * @param emitter the main process emitter (ipcMain)
  */
 export const bootstrapModule = (targetModule: Type<unknown>, emitter: ElectronMainEmitter): void => {
-  const providers = resolveProviders(targetModule);
+  const providers = bootstrapResolveProviders(targetModule);
 
   mainEmitter = emitter;
   browserWindows = [];

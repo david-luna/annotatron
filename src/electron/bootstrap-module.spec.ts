@@ -66,7 +66,7 @@ describe('The @ElectronModule decorator', () => {
       bootstrapModule(BadProviderModuleClass, ipcMainMock);
     } catch (error) {
       expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('could not be found in the injector');
+      expect(error.message).toContain('is not registered');
       expect(ipcMainMock.on).not.toHaveBeenCalled();
     }
 
@@ -86,7 +86,7 @@ describe('The @ElectronModule decorator', () => {
       bootstrapModule(AnotherBadProviderModuleClass, ipcMainMock);
     } catch (error) {
       expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('could not be found in the injector');
+      expect(error.message).toContain('is not registered');
       expect(ipcMainMock.on).not.toHaveBeenCalled();
     }
 
