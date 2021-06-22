@@ -13,10 +13,17 @@ jobs:
         with:
           node-version: 14
           registry-url: 'https://registry.npmjs.org'
-      - run: npm i
-      - run: npm test
-      - run: npm run lcov
-      - run: npm run build
-      - run: npm publish
+      - name: Tests
+        run: |
+          npm install
+          npm test
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & Publish
+        run: |
+          npm run build
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
