@@ -9,11 +9,20 @@ import {
 } from './electron-module';
 import { Injector, INJECTED_METADATA_KEY } from '../injectable';
 
-// Type guard
-const isType = (provider: ModuleProvider): provider is Type<unknown> => {
+/**
+ * Tells if the provider passed is a Type or not (useClass provider)
+ * @param provider the provider to check
+ * @returns true if the provider is a Type
+ */
+export const isType = (provider: ModuleProvider): provider is Type<unknown> => {
   return provider.constructor.name !== 'Object';
 };
 
+/**
+ * Checks if the provider is already in the injector and throws if so
+ *
+ * @param provider the provider to check
+ */
 const checkTypeProvider = (provider: Type<unknown> | AbstractType<unknown>): void => {
   const isInjected = Reflect.getMetadata(INJECTED_METADATA_KEY, provider) as boolean;
 
@@ -61,20 +70,23 @@ const resolveProviders = (moduleWithProviders: Type<unknown>): ModuleProvider[] 
 };
 
 /**
- * Resolves all providers of the target module and its sub modules and connects them to the
- * proper communications channels
+ * Resolves all providers of the target module and its sub modules making sure there is no
+ * misconfiguration
  *
  * @param targetModule the module to bootstrap
- * @param emitter the main process emitter (ipcMain)
+ * @returns the list of providers
  */
-export const bootstrapResolveProviders = (targetModule: Type<unknown>): void => {
+export const bootstrapResolveProviders = (targetModule: Type<unknown>): ModuleProvider[] => {
   const overriddenTokens = new Map();
+  const resolvedProviders = resolveProviders(targetModule);
 
-  resolveProviders(targetModule).forEach((provider) => {
+  resolvedProviders.forEach((provider) => {
     if (isType(provider)) {
       checkTypeProvider(provider);
     } else {
       checkClassProvider(provider, overriddenTokens);
     }
   });
+
+  return resolvedProviders;
 };

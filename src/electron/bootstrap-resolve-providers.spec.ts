@@ -79,7 +79,11 @@ describe('bootstrapResolveProviders', () => {
     })
     class ModuleClass {}
 
-    expect(() => bootstrapResolveProviders(ModuleClass)).not.toThrow();
+    // eslint-disable-next-line prettier/prettier
+    expect(bootstrapResolveProviders(ModuleClass)).toEqual([
+      AnotherDecoratedProviderClass,
+      DecoratedProviderClass,
+    ]);
   });
 
   it('should throw if provider misconfigured with useClass providers', () => {
@@ -131,7 +135,12 @@ describe('bootstrapResolveProviders', () => {
 
     const overrideSpy = jest.spyOn(Injector, 'overrideToken');
 
-    expect(() => bootstrapResolveProviders(ModuleClass)).not.toThrow();
+    expect(bootstrapResolveProviders(ModuleClass)).toEqual([
+      {
+        provide: DecoratedProviderToBeOverriddenClass,
+        useClass: DecoratedProviderWhichOverridesClass,
+      },
+    ]);
     expect(overrideSpy).toHaveBeenCalledWith(
       DecoratedProviderToBeOverriddenClass,
       DecoratedProviderWhichOverridesClass,
@@ -152,6 +161,9 @@ describe('bootstrapResolveProviders', () => {
 
     bootstrapResolveProviders(ModuleClass);
 
-    expect(() => bootstrapResolveProviders(ModuleClass)).not.toThrow();
+    // eslint-disable-next-line prettier/prettier
+    expect(bootstrapResolveProviders(ModuleClass)).toEqual([
+      DecoratedWithDependenciesClass,
+    ])
   });
 });
