@@ -5,7 +5,6 @@ import { ElectronMainEmitter, BrowserWindow } from './electron-types';
 import { bootstrapResolveProviders, isType } from './bootstrap-resolve-providers';
 import { COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY } from './command-query-event';
 
-
 // Communication channels
 const Channels = {
   Results: 'annotatron:results',
@@ -93,9 +92,9 @@ export const connectWindow = (windowInstance: BrowserWindow): void => {
  *
  * @param data event data
  */
-export const emitEvent = (data: unknown): void => {
+export const emitEvent = (data: { type: string }): void => {
   if (mainEmitter !== void 0) {
-    mainEmitter.emit(Channels.Events, [data]);
+    mainEmitter.emit(`${Channels.Events}:${data.type}`, [data]);
     browserWindows.forEach((windowInstance) => {
       windowInstance.webContents.send(Channels.Events, [data]);
     });

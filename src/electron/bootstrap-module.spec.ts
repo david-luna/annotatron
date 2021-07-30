@@ -258,7 +258,7 @@ describe('The @ElectronModule decorator', () => {
     const ipcMainEmitSpy = (ipcMainMock.emit as unknown) as jest.SpyInstance;
 
     it('should keep a window reference and emit events on it', () => {
-      const eventData = { type: 'event', payload: 'test' };
+      const eventData = { type: 'event-type', payload: 'test' };
       let closeCallback: () => void;
       onSpy.mockImplementation((name, callback) => (closeCallback = callback));
 
@@ -271,7 +271,7 @@ describe('The @ElectronModule decorator', () => {
 
       emitEvent(eventData);
 
-      expect(ipcMainEmitSpy).toHaveBeenCalledWith('annotatron:events', [eventData]);
+      expect(ipcMainEmitSpy).toHaveBeenCalledWith('annotatron:events:event-type', [eventData]);
       expect(sendSpy).toHaveBeenCalledWith('annotatron:events', [eventData]);
       expect(ipcMainEmitSpy).toHaveBeenCalledTimes(2);
       expect(sendSpy).toHaveBeenCalledTimes(1);

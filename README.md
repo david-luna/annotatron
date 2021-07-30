@@ -43,7 +43,7 @@ export class MyElectronApplicationModule {
 }
 ```
 
-After doing this you are now capable of bootstrapping the application using `bootstrapModule` method. Usually this is don in the index file. You may want to use `connectWindow` method to allow your app windows to receive events from the main process.
+After doing this you are now capable of bootstrapping the application using `bootstrapModule` method. Usually this is done in the index file. You may want to use `connectWindow` method to allow your app windows to receive events from the main process.
 
 NOTE: events are messages emitted without the need to respond to a query or a command. They are useful to notify something that is happening on the system
 
@@ -63,7 +63,7 @@ bootstrapModule(MyElectronApplicationModule, ipcMain);
 
 ### Listening in the main process
 
-Providers are classes that will be injected into the application and will listen to messages from browser windows and other providers. A provider can listen to Commands, Queries adn Events using the right decorators. Those decorators require a parameter which is the type of command/query/event they are listening to.
+Providers are classes that will be injected into the application and will listen to messages from browser windows and other providers. A provider can listen to Commands, Queries and Events using the right decorators. Those decorators require a parameter which is the type of command/query/event they are listening to.
 
 ```typescript
 // file: my-provider.ts
@@ -112,14 +112,14 @@ import { emitEvent } from 'annotatron';
 // There is no need to be in an injectable class
 export class MyClass {
   method(command: any): any {
-    const data = some_logic();
+    const payload = some_logic();
 
-    emitEvent(data);
+    emitEvent({ type: 'event-type', payload });
   }
 }
 ```
 
-### Emitting commands ad queries from a window
+### Emitting commands and queries from a window
 
 Commands and Queries are meant to be fired from browser windows to the main process. Also this lib is meant to work with windows with [context isolation](https://www.electronjs.org/docs/tutorial/context-isolation) enabled and with the [remote module](https://www.electronjs.org/docs/api/remote) disabled. Therefore you must provide a preload script to create a communication bridge.
 
@@ -164,6 +164,10 @@ contextBridge.exposeInMainWorld(
 Point to that file in the `preload` option when creating a window and you and your renderer process (the UI) will have a global property name `mainProcess` which has all the tolls for communicating with the main process.
 
 ## Release notes
+
+### [0.0.10]
+
+* fix methods with @Event annotation not being called
 
 ### [0.0.9]
 
