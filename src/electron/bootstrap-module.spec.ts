@@ -11,6 +11,7 @@ import { BrowserWindow } from './electron-types';
 
 describe('The @ElectronModule decorator', () => {
   const ipcMainMock = { on: jest.fn(), emit: jest.fn() } as any;
+  const ipcMainOnSpy = ipcMainMock.on as jest.SpyInstance;
 
   beforeEach(() => {
     Injector.reset();
@@ -33,7 +34,7 @@ describe('The @ElectronModule decorator', () => {
     } catch (error) {
       expect(error instanceof Error).toEqual(true);
       expect(error.message).toContain('is not a module');
-      expect(ipcMainMock.on).not.toHaveBeenCalled();
+      expect(ipcMainOnSpy).not.toHaveBeenCalled();
     }
 
     @Injectable()
@@ -49,7 +50,7 @@ describe('The @ElectronModule decorator', () => {
     } catch (error) {
       expect(error instanceof Error).toEqual(true);
       expect(error.message).toContain('is not a module');
-      expect(ipcMainMock.on).not.toHaveBeenCalled();
+      expect(ipcMainOnSpy).not.toHaveBeenCalled();
     }
 
     expect.assertions(6);
@@ -67,7 +68,7 @@ describe('The @ElectronModule decorator', () => {
     } catch (error) {
       expect(error instanceof Error).toEqual(true);
       expect(error.message).toContain('is not registered');
-      expect(ipcMainMock.on).not.toHaveBeenCalled();
+      expect(ipcMainOnSpy).not.toHaveBeenCalled();
     }
 
     class NonDecoratedProviderToBeOverriddenClass {}
@@ -87,7 +88,7 @@ describe('The @ElectronModule decorator', () => {
     } catch (error) {
       expect(error instanceof Error).toEqual(true);
       expect(error.message).toContain('is not registered');
-      expect(ipcMainMock.on).not.toHaveBeenCalled();
+      expect(ipcMainOnSpy).not.toHaveBeenCalled();
     }
 
     expect.assertions(6);
@@ -125,13 +126,13 @@ describe('The @ElectronModule decorator', () => {
 
     bootstrapModule(ModuleClass, ipcMainMock);
 
-    expect(ipcMainMock.on).toHaveBeenCalledTimes(6);
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(1, 'annotatron:commands:my-command', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(2, 'annotatron:queries:my-query', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(3, 'annotatron:events:my-event', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(4, 'annotatron:commands:my-command', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(5, 'annotatron:queries:my-query', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(6, 'annotatron:events:my-event', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenCalledTimes(6);
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(1, 'annotatron:commands', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(2, 'annotatron:queries', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(3, 'annotatron:events', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(4, 'annotatron:commands', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(5, 'annotatron:queries', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(6, 'annotatron:events', expect.any(Function));
   });
 
   it('should do the bootstrap if provider properly configured with useClass providers', () => {
@@ -158,10 +159,10 @@ describe('The @ElectronModule decorator', () => {
 
     bootstrapModule(ModuleClass, ipcMainMock);
 
-    expect(ipcMainMock.on).toHaveBeenCalledTimes(3);
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(1, 'annotatron:commands:my-command', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(2, 'annotatron:queries:my-query', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(3, 'annotatron:events:my-event', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenCalledTimes(3);
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(1, 'annotatron:commands', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(2, 'annotatron:queries', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(3, 'annotatron:events', expect.any(Function));
   });
 
   it('should do the bootstrap with providers that have dependencies', () => {
@@ -184,10 +185,10 @@ describe('The @ElectronModule decorator', () => {
 
     bootstrapModule(ModuleClass, ipcMainMock);
 
-    expect(ipcMainMock.on).toHaveBeenCalledTimes(3);
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(1, 'annotatron:commands:my-command', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(2, 'annotatron:queries:my-query', expect.any(Function));
-    expect(ipcMainMock.on).toHaveBeenNthCalledWith(3, 'annotatron:events:my-event', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenCalledTimes(3);
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(1, 'annotatron:commands', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(2, 'annotatron:queries', expect.any(Function));
+    expect(ipcMainOnSpy).toHaveBeenNthCalledWith(3, 'annotatron:events', expect.any(Function));
   });
 
   it('should send result of the listener method of the provider as messages', async () => {
@@ -211,38 +212,46 @@ describe('The @ElectronModule decorator', () => {
     })
     class ModuleWithProviderClass {}
 
-    const onMock = ipcMainMock.on as jest.SpyInstance;
-    const senderMock = { send: jest.fn() } as any;
+    const sendSpy = jest.fn();
+    const senderMock = { send: sendSpy } as any;
     const eventMock = { sender: senderMock } as any;
     const listeners = {} as any;
 
-    onMock.mockImplementation((event, handler) => {
+    ipcMainOnSpy.mockImplementation((event, handler) => {
       const key = event.split(':')[1];
       listeners[key] = handler;
     });
 
     bootstrapModule(ModuleWithProviderClass, ipcMainMock);
 
-    expect(ipcMainMock.on).toHaveBeenCalledTimes(3);
+    expect(ipcMainOnSpy).toHaveBeenCalledTimes(3);
     expect(listeners.commands).toBeDefined();
     expect(listeners.queries).toBeDefined();
     expect(listeners.events).toBeDefined();
 
-    listeners.commands(eventMock, [{ type: 'my-command', payload: {} }]);
-    expect(senderMock.send).toHaveBeenCalledWith(
-      'annotatron:results',
-      expect.arrayContaining([expect.objectContaining({ result: 'command-result' })]),
-    );
+    listeners.commands(eventMock, { type: 'mismatch-command', payload: {} });
+    listeners.queries(eventMock, { type: 'mismatch-query', payload: {} });
+    listeners.events({ type: 'mismatch-event', payload: {} });
+    expect(sendSpy).not.toHaveBeenCalled();
 
-    listeners.queries(eventMock, [{ type: 'my-query', payload: {} }]);
+    listeners.commands(eventMock, { type: 'my-command', payload: {} });
     await Promise.resolve(); // wait to next tick
-    expect(senderMock.send).toHaveBeenCalledWith(
+    // eslint-disable-next-line prettier/prettier
+    expect(sendSpy).toHaveBeenCalledWith(
       'annotatron:results',
-      expect.arrayContaining([expect.objectContaining({ result: 'query-result' })]),
+      expect.objectContaining({ result: 'command-result' }),
     );
 
-    listeners.events(eventMock, [{ type: 'my-event', payload: {} }]);
-    expect(senderMock.send).toHaveBeenCalledTimes(2);
+    listeners.queries(eventMock, { type: 'my-query', payload: {} });
+    await Promise.resolve(); // wait to next tick
+    // eslint-disable-next-line prettier/prettier
+    expect(sendSpy).toHaveBeenCalledWith(
+      'annotatron:results',
+      expect.objectContaining({ result: 'query-result' }),
+    );
+
+    listeners.events({ type: 'my-event', payload: {} });
+    expect(sendSpy).toHaveBeenCalledTimes(2);
   });
 
   describe('connectWindow and emitEvent', () => {
@@ -258,7 +267,7 @@ describe('The @ElectronModule decorator', () => {
     const ipcMainEmitSpy = (ipcMainMock.emit as unknown) as jest.SpyInstance;
 
     it('should keep a window reference and emit events on it', () => {
-      const eventData = { type: 'event', payload: 'test' };
+      const eventData = { type: 'event-type', payload: 'test' };
       let closeCallback: () => void;
       onSpy.mockImplementation((name, callback) => (closeCallback = callback));
 
@@ -271,8 +280,8 @@ describe('The @ElectronModule decorator', () => {
 
       emitEvent(eventData);
 
-      expect(ipcMainEmitSpy).toHaveBeenCalledWith('annotatron:events', [eventData]);
-      expect(sendSpy).toHaveBeenCalledWith('annotatron:events', [eventData]);
+      expect(ipcMainEmitSpy).toHaveBeenCalledWith('annotatron:events', eventData);
+      expect(sendSpy).toHaveBeenCalledWith('annotatron:events', eventData);
       expect(ipcMainEmitSpy).toHaveBeenCalledTimes(2);
       expect(sendSpy).toHaveBeenCalledTimes(1);
     });

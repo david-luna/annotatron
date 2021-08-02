@@ -5,6 +5,10 @@ import { ElectronMainEmitter, BrowserWindow } from './electron-types';
 import { bootstrapResolveProviders, isType } from './bootstrap-resolve-providers';
 import { COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY } from './command-query-event';
 
+interface CommandQueryOrEvent {
+  type: string; // decorators refer to this property
+  payload: unknown; // the decorated method will receive this as parameter
+}
 
 // Communication channels
 const Channels = {
@@ -22,30 +26,45 @@ let browserWindows: BrowserWindow[];
  *
  * @param instance object as instance of a provider
  * @param method the name of the method we want to connect
- * @param eventName the name of the event the methods has to respond
+ * @param channel the channel used based on the message nature (command, query, event)
+ * @param type the type of the message we want to listen
  * @param emitter the event emitter
  */
-const connectMethod = (instance: unknown, method: string, eventName: string, emitter: ElectronMainEmitter) => {
-  emitter.on(eventName, (evt, args) => {
-    try {
-      // TODO: check for message shape? ({ type, payload })
-      const payload = args[0].payload;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = (instance as any)[method](payload);
+const connectMethod = (
+  instance: unknown,
+  method: string,
+  channel: string,
+  type: string,
+  emitter: ElectronMainEmitter,
+) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  emitter.on(channel, (evt, data) => {
+    // Commands & Queries come from an ipcRenderer so they have the event as 1st param
+    // Events make use of nodejs Emitter API so the 1st param is the message
+    const isEventChannel = channel === Channels.Events;
+    const message = (isEventChannel ? evt : data) as CommandQueryOrEvent;
 
-      if (eventName.startsWith('annotatron:events')) {
+    if (message.type !== type) {
+      return;
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (instance as any)[method](message.payload);
+
+      if (channel === Channels.Events) {
         return;
       }
 
       if (isPromise(result)) {
         result
-          .then((value) => evt.sender.send(Channels.Results, [value]))
-          .catch((error) => evt.sender.send(Channels.Errors, [error]));
+          .then((value) => evt.sender.send(Channels.Results, value))
+          .catch((error) => evt.sender.send(Channels.Errors, error));
       } else if (result) {
-        evt.sender.send(Channels.Results, [result]);
+        evt.sender.send(Channels.Results, result);
       }
     } catch (error) {
-      evt.sender.send(Channels.Errors, [error]);
+      evt.sender && evt.sender.send(Channels.Errors, error);
     }
   });
 };
@@ -60,18 +79,17 @@ const connectMethod = (instance: unknown, method: string, eventName: string, emi
 const connectProvider = (provider: ModuleProvider, emitter: ElectronMainEmitter): void => {
   const classToConnect = isType(provider) ? provider : provider.useClass;
 
-  const streams = [COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY];
+  const channels = [COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY];
   const instance = Injector.resolve(classToConnect);
 
-  streams.forEach((stream) => {
+  channels.forEach((channel) => {
     const observerClass = classToConnect;
-    const streamObservers = (Reflect.getMetadata(stream, observerClass) || {}) as Record<string, string[]>;
-    const observedTypes = Object.keys(streamObservers);
+    const channelObservers = (Reflect.getMetadata(channel, observerClass) || {}) as Record<string, string[]>;
+    const observedTypes = Object.keys(channelObservers);
 
-    observedTypes.forEach((typeName) => {
-      const eventName = `${stream}:${typeName}`;
-      const methods = streamObservers[typeName];
-      methods.forEach((method) => connectMethod(instance, method, eventName, emitter));
+    observedTypes.forEach((type) => {
+      const methods = channelObservers[type];
+      methods.forEach((method) => connectMethod(instance, method, channel, type, emitter));
     });
   });
 };
@@ -93,11 +111,11 @@ export const connectWindow = (windowInstance: BrowserWindow): void => {
  *
  * @param data event data
  */
-export const emitEvent = (data: unknown): void => {
+export const emitEvent = (data: CommandQueryOrEvent): void => {
   if (mainEmitter !== void 0) {
-    mainEmitter.emit(Channels.Events, [data]);
+    mainEmitter.emit(`${Channels.Events}`, data);
     browserWindows.forEach((windowInstance) => {
-      windowInstance.webContents.send(Channels.Events, [data]);
+      windowInstance.webContents.send(Channels.Events, data);
     });
   }
 };
