@@ -123,11 +123,11 @@ export class MyClass {
 
 Commands and Queries are meant to be fired from browser windows to the main process. Also this lib is meant to work with windows with [context isolation](https://www.electronjs.org/docs/tutorial/context-isolation) enabled and with the [remote module](https://www.electronjs.org/docs/api/remote) disabled. Therefore you must provide a preload script to create a communication bridge.
 
-- Commands must be sent to the ipcMain process using `annotation:commands` channel.
-- Queries must be sent to the ipcMain process using `annotation:queries` channel.
-- Command/Queries results are sent back to the ipcRender through the `annotation:results` channel.
-- Command/Queries errors are sent back to the ipcRender through the `annotation:errors` channel.
-- Events are sent to browser windows through the `annotation:events` channel.
+- Commands must be sent to the ipcMain process using `annotatron:commands` channel.
+- Queries must be sent to the ipcMain process using `annotatron:queries` channel.
+- Command/Queries results are sent back to the ipcRender through the `annotatron:results` channel.
+- Command/Queries errors are sent back to the ipcRender through the `annotatron:errors` channel.
+- Events are sent to browser windows through the `annotatron:events` channel.
   - remember events are also propagated within the ipcMain process so app providers can listen to them via the `@Event` annotation.
 
 A sample preload script could be:
