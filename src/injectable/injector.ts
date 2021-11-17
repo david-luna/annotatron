@@ -63,6 +63,11 @@ export class Injector {
       const tokenInstance = new tokenConstructor(...injections);
 
       Injector.instancesVault.set(token, tokenInstance as Object);
+
+      // Put instance for overrides
+      if (constructorFunction !== token && Injector.dependenciesVault.has(constructorFunction)) {
+        Injector.instancesVault.set(constructorFunction, tokenInstance as Object);
+      }
       return tokenInstance as T;
     }
 

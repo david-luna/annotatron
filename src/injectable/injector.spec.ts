@@ -78,6 +78,7 @@ describe('The static Injector', () => {
     expect(instanceObjectA instanceof StubbedClassA).not.toBeTruthy();
     expect(instanceObjectA instanceof StubbedClassB).toBeTruthy();
     expect(instanceObjectB instanceof StubbedClassB).toBeTruthy();
+    expect(instanceObjectA).toBe(instanceObjectB);
   });
 
   it('should NOT allow to override a type if already overridden', () => {
