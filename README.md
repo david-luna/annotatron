@@ -11,10 +11,10 @@ Set of helper annotations for electron projects inspired by the Angular module d
 
 ## Usage
 
-
 ### ApplicationModule setup
 
 Create a module class for your electron application and use the `@ElectronModule` decorator to define:
+
 - dependencies with other modules via `imports` parameter.
 - direct dependencies to other classes via `providers` parameter.
 
@@ -59,7 +59,6 @@ bootstrapModule(MyElectronApplicationModule, ipcMain);
 
 /// rest of the index boilerplate
 ```
-
 
 ### Listening in the main process
 
@@ -162,40 +161,44 @@ contextBridge.exposeInMainWorld(
   }
 );
 ```
+
 Point to that file in the `preload` option when creating a window and you and your renderer process (the UI) will have a global property named `mainProcess` which has all the tools for communicating with the main process.
 
 ## Release notes
 
+### [0.0.11]
+
+- Overriden providers with `useClass` were returning different instances.
+
 ### [0.0.10]
 
-* Messaging simplified. No need to wrap Command/Query in an array.
-* fix methods with @Event annotation not being called
+- Messaging simplified. No need to wrap Command/Query in an array.
+- fix methods with @Event annotation not being called
 
 ### [0.0.9]
 
-* fix resolver of `useClass` provider
+- fix resolver of `useClass` provider
 
 ### [0.0.8]
 
-* add more checks in module bootstrapping
+- add more checks in module bootstrapping
 
 ### [0.0.6]
 
-* add new provider type with useClass
+- add new provider type with useClass
 
 ### [0.0.5]
 
-* fix problem in package publishing
+- fix problem in package publishing
 
 ### [0.0.2]
 
-* bootstrap module method
+- bootstrap module method
 
 ### [0.0.1]
 
-* Injection annotations
-* Messaging annotations
-* Module annotations
-* connect window method
-* event emitter method
-
+- Injection annotations
+- Messaging annotations
+- Module annotations
+- connect window method
+- event emitter method
