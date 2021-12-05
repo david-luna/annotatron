@@ -2,7 +2,7 @@
 node_modules
 
 # test artifacts
-/coverage
+/packages/**/coverage/
 
 # build artifacts
-/lib
+/packages/**/lib/
