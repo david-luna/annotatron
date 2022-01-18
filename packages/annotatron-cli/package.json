@@ -1,5 +1,5 @@
 {
-  "name": "annotatron-cli",
+  "name": "annotatron-create",
   "version": "0.0.1",
   "description": "cli for electron projects with annotatron",
   "bin": ".lib/index.js",
