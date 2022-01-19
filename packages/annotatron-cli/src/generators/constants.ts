@@ -1,5 +1,8 @@
 // CWD
-export const cwd = process.cwd();
+export const execOptions = {
+  cwd: process.cwd(),
+  stdio: 'inherit',
+};
 
 // Preload script
 export const preloadTemplate = `

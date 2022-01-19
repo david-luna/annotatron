@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { cwd, preloadTemplate } from './constants';
+import { execOptions, preloadTemplate } from './constants';
 
 export const electronBuilder = (name: string): void => {
   const preloadPath = 'assets/preload.js';
@@ -14,6 +14,6 @@ export const electronBuilder = (name: string): void => {
   ].join (' && ');
 
   console.log(command);
-  const bootstrapResult = execSync(command, { cwd });
+  const bootstrapResult = execSync(command, execOptions);
 };
   

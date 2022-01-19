@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { cwd, preloadTemplate } from './constants';
+import { execOptions, preloadTemplate } from './constants';
 
 export const electronForge = (name: string): void => {
   // TODO: update path
@@ -7,5 +7,5 @@ export const electronForge = (name: string): void => {
   const command =  `npx create-electron-app ${name} --template=typescript`;
 
   console.log(command);
-  const bootstrapResult = execSync(command, { cwd });
+  const bootstrapResult = execSync(command, execOptions);
 };
