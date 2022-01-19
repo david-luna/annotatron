@@ -1,5 +1,4 @@
 #!/usr/bin/env/node
-
 import { existsSync, statSync } from 'fs';
 import { exit } from 'process';
 import { electronForge, electronBuilder, electronReact } from './generators';

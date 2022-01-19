@@ -1,4 +1,9 @@
- export const electronReact = (name: string): void => {
+import { execSync } from 'child_process';
+import { cwd, preloadTemplate } from './constants';
+
+export const electronReact = (name: string): void => {
+  // TODO: update path
+  const preloadPath = 'assets/preload.js';
   const repo = 'https://github.com/electron-react-boilerplate/electron-react-boilerplate.git';
   const command =  [
     `git clone --depth 1 --branch main ${repo} ${name}`
@@ -8,4 +13,5 @@
   ].join (' && ');
 
   console.log(command);
+  const bootstrapResult = execSync(command, { cwd });
 };
