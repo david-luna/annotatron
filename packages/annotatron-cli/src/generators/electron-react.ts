@@ -14,4 +14,15 @@ export const electronReact = (name: string): void => {
 
   console.log(command);
   const bootstrapResult = execSync(command, execOptions);
+
+  // Add preload script
+  const mainPath = `${name}/src/main`;
+  mkdirSync(mainPath, { recursive: true });
+  writeFileSync(`${mainPath}/preload.js`, preloadTemplate, { encodong: 'utf-8' });
+
+  // Modify index.ts
+  writeFileSync(`${mainPath}/main.ts`, sourceIndexForge, { encodong: 'utf-8' });
+
+  // Add application module
+  writeFileSync(`${mainPath}/application.ts`, sourceAppModule, { encodong: 'utf-8' });
 };

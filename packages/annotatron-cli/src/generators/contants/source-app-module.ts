@@ -1,4 +1,4 @@
-export const sourceAppModuleS = `
+export const sourceAppModule = `
 import { ElectronModule } from 'annotatron';
 
 @ElectronModule({
