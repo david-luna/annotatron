@@ -16,5 +16,8 @@
   "license": "MIT",
   "dependencies": {
     "inquirer": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.16"
   }
 }
