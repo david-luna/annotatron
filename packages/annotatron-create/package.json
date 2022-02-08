@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p tsconfig.build.json",
+    "postbuild": "echo \"alias annotatron-create='node $(pwd)/lib/cli.js'\"",
     "clean": "rm -rf lib",
     "lint": "eslint 'src/**/*.ts'"
   },
