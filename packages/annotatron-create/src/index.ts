@@ -10,14 +10,17 @@ const generators = {
   'electron-builder': electronBuilder,
   'electron-react': electronReact,
 };
-const templates = Object.keys(generators);
+type GeneratorMap = typeof generators;
+
+
+const templates = Object.keys(generators) as unknown as Array<keyof GeneratorMap>;
 
 
 // Get arguments
-const [, , name, template] = process.argv;
+const [, , name, templateName] = process.argv;
+const template = templates.find(item => item === templateName)
 
-
-if (!name || !template || !templates.some(t => t === template)) {
+if (!name || !template) {
   // eslint-disable-next-line no-console
   console.log('usage: npx annotatron-create name template');
   console.log(`template = ${templates.join(' | ')}`);
