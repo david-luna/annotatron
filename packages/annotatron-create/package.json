@@ -1,34 +1,14 @@
 {
-  "name": "annotatron-create",
+  "name": "create-annotatron-app",
   "version": "0.0.1",
   "description": "cli for electron projects with annotatron",
-  "bin": ".lib/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p tsconfig.build.json",
-    "postbuild": "echo \"alias annotatron-create='node $(pwd)/lib/cli.js'\"",
-    "clean": "rm -rf lib",
-    "lint": "eslint 'src/**/*.ts'"
-  },
+  "bin": "./index.js",
+  "type": "module",
   "keywords": [
     "electron",
     "CLI",
-    "annotatron",
-    "typescript"
+    "annotatron"
   ],
   "author": "David Luna",
-  "license": "MIT",
-  "dependencies": {
-    "inquirer": "^8.2.0"
-  },
-  "devDependencies": {
-    "@types/node": "^17.0.16",
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
-    "@typescript-eslint/parser": "^4.22.0",
-    "eslint": "^7.25.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.4.0",
-    "prettier": "^2.2.1",
-    "typescript": "^4.2.4"
-  }
+  "license": "MIT"
 }
