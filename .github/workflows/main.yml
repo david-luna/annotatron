@@ -21,9 +21,10 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: './packages/annotatron/coverage/lcov.info'
       - name: Build & Publish
         run: |
-          npm run build
+          lerna run build
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

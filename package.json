@@ -1,51 +1,12 @@
 {
-  "name": "annotatron",
-  "version": "0.0.11",
-  "description": "set of helper annotations for electron projects",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
-  "files": [
-    "lib"
-  ],
+  "name": "root",
+  "private": true,
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "test": "jest",
-    "clean": "rm -rf coverage && rm -rf lib",
-    "lcov": "cat coverage/lcov.info | coveralls",
-    "lint": "eslint 'src/**/*.ts'"
+    "lint": "lerna run lint",
+    "test": "lerna run test",
+    "build": "lerna run build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/david-luna/annotatron.git"
-  },
-  "keywords": [
-    "electron",
-    "utils",
-    "annotations",
-    "typescript",
-    "ipc"
-  ],
-  "author": "David Luna",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/david-luna/annotatron/issues"
-  },
-  "homepage": "https://github.com/david-luna/annotatron#readme",
   "devDependencies": {
-    "@types/jest": "^24.0.23",
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
-    "@typescript-eslint/parser": "^4.22.0",
-    "coveralls": "^3.0.11",
-    "eslint": "^7.25.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.4.0",
-    "jest": "^24.9.0",
-    "prettier": "^2.2.1",
-    "ts-jest": "^26.5.5",
-    "ts-loader": "^8.0.11",
-    "typescript": "^4.2.4"
-  },
-  "dependencies": {
-    "reflect-metadata": "^0.1.13"
+    "lerna": "^4.0.0"
   }
 }

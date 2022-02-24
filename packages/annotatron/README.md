@@ -9,6 +9,19 @@ Set of helper annotations for electron projects inspired by the Angular module d
 ![Code Size](https://img.shields.io/bundlephobia/minzip/annotatron.svg)
 ![Weekly downloads](https://img.shields.io/npm/dw/annotatron.svg)
 
+## Template projects
+
+You can create a new Electron project with annotatron from one of two templates by running the following command.
+
+```bash
+npx create-annotatron-app {template} {project}
+```
+
+where
+
+- template: is one of the values (vue, react)
+- name: name of your next awesome project
+
 ## Usage
 
 ### ApplicationModule setup
