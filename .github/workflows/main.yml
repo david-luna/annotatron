@@ -27,6 +27,6 @@ jobs:
       - name: Build & Publish
         run: |
           lerna run build
-          lerna publish from-git
+          lerna publish from-package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
