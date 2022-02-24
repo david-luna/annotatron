@@ -1,6 +1,6 @@
 {
   "name": "create-annotatron-app",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "cli for electron projects with annotatron",
   "bin": "./index.js",
   "type": "module",
