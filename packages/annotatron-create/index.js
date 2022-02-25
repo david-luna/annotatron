@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { exit } from 'process';
-import { execSync } from 'child_process';
+const { exit } = require('process');
+const { execSync } = require('child_process');
 
 function generateProject(repo, name) {
   const command = [
