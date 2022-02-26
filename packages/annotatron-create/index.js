@@ -4,8 +4,6 @@ const https = require('https')
 const { exit } = require('process');
 const { execSync } = require('child_process');
 
-const teplatesUrl = 'https:///';
-
 function getTemplates() {
   return new Promise((resolve, reject) => {
     const options = {
