@@ -1,56 +1,41 @@
 #!/usr/bin/env node
 
-const https = require('https')
+// required
+const fetchJson = require('./fetch');
 const { exit } = require('process');
 const { execSync } = require('child_process');
 
-function getTemplates() {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'raw.githubusercontent.com',
-      port: 443,
-      path: '/david-luna/annotatron/main/packages/annotatron-create/templates.json',
-      method: 'GET'
-    };
-    const req = https.request(options, res => {
-      res.on('data', (d) => resolve(JSON.parse(d)));
-    });
-    req.on('error', reject);
-    req.end();
-  });
-  
-}
 
-function generateProject(repo, name) {
-  const command = [
-    `git clone --depth 1 --branch main ${repo} ${name}`,
-    `cd ${name}`,
-    'rm -rf .git',
-    'yarn', // TODO: npm i?
-  ].join(' && ');
-  
-  execSync(command, { cwd: process.cwd(), stdio: 'inherit' });
-}
+// Fetch constants
+const host = 'raw.githubusercontent.com';
+const branch = 'david-luna/annotatron/main';
+const path = 'packages/annotatron-create/templates.json';
+const templatesUrl = `https://${host}/${branch}/${path}`;
 
-
-
-// Get arguments
+// Arguments
 const [, , templateSelected, name] = process.argv;
 
-
 console.log('Fetching template list');
-getTemplates()
+fetchJson(templatesUrl)
   .then((templates) => {
     const templateNames = Object.keys(templates);
-    const template = templateNames.find((name) => name === templateSelected);
+    const templateRepo = templates[templateSelected];
+    // const template = templateNames.find((name) => name === templateSelected);
 
-    if (!name || !template) {
+    if (!name || !templateRepo) {
       console.log('usage: npx annotatron-create {template} {name}');
-      console.log(`template = ${templates.join(' | ')}`);
+      console.log(`template = ${templateNames.join(' | ')}`);
       console.log(`name = name-of-your-project`);
       exit(0);
     }
 
     // run the generator
-    generateProject(repositories[template], name);
+    const command = [
+      `git clone --depth 1 --branch main ${templateRepo} ${name}`,
+      `cd ${name}`,
+      'rm -rf .git',
+      'yarn',
+    ].join(' && ');
+    
+    execSync(command, { cwd: process.cwd(), stdio: 'inherit' });
   });
