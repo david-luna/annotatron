@@ -20,7 +20,6 @@ fetchJson(templatesUrl)
   .then((templates) => {
     const templateNames = Object.keys(templates);
     const templateRepo = templates[templateSelected];
-    // const template = templateNames.find((name) => name === templateSelected);
 
     if (!name || !templateRepo) {
       console.log('usage: npx annotatron-create {template} {name}');

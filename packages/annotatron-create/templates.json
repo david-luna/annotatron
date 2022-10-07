@@ -1,4 +1,5 @@
 {
   "vue": "https://github.com/david-luna/annotatron-vue-template.git",
-  "react": "https://github.com/david-luna/annotatron-react-template.git"
+  "react": "https://github.com/david-luna/annotatron-react-template.git",
+  "forge": "https://github.com/david-luna/annotatron-forge-template.git"
 }
