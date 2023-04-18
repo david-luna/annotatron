@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable max-classes-per-file */
 import 'reflect-metadata';
-import { Injectable, Injector } from '../injectable';
+import { Injectable } from 'injection-js';
 import { Command, Event, Query } from './command-query-event';
 import { ElectronModule } from './electron-module';
 import { bootstrapModule, connectWindow, emitEvent } from './bootstrap-module';
@@ -13,85 +13,8 @@ describe('The @ElectronModule decorator', () => {
   const ipcMainMock = { on: jest.fn(), emit: jest.fn() } as any;
   const ipcMainOnSpy = ipcMainMock.on as jest.SpyInstance;
 
-  beforeEach(() => {
-    Injector.reset();
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('should throw an error if importing a non module class', () => {
-    class NonDecoratedModuleClass {}
-    @ElectronModule({
-      imports: [NonDecoratedModuleClass],
-      providers: [],
-    })
-    class MisconfiguredModuleClassOne {}
-
-    try {
-      bootstrapModule(MisconfiguredModuleClassOne, ipcMainMock);
-    } catch (error) {
-      expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('is not a module');
-      expect(ipcMainOnSpy).not.toHaveBeenCalled();
-    }
-
-    @Injectable()
-    class WronglyDecoratedModuleClass {}
-    @ElectronModule({
-      imports: [WronglyDecoratedModuleClass],
-      providers: [],
-    })
-    class MisconfiguredModuleClassTwo {}
-
-    try {
-      bootstrapModule(MisconfiguredModuleClassTwo, ipcMainMock);
-    } catch (error) {
-      expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('is not a module');
-      expect(ipcMainOnSpy).not.toHaveBeenCalled();
-    }
-
-    expect.assertions(6);
-  });
-
-  it('should throw an error if a provider is not injectable', () => {
-    class NonDecoratedProviderClass {}
-    @ElectronModule({
-      providers: [NonDecoratedProviderClass],
-    })
-    class BadProviderModuleClass {}
-
-    try {
-      bootstrapModule(BadProviderModuleClass, ipcMainMock);
-    } catch (error) {
-      expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('is not registered');
-      expect(ipcMainOnSpy).not.toHaveBeenCalled();
-    }
-
-    class NonDecoratedProviderToBeOverriddenClass {}
-    class NonDecoratedProviderOverrideClass {}
-    @ElectronModule({
-      providers: [
-        {
-          provide: NonDecoratedProviderToBeOverriddenClass,
-          useClass: NonDecoratedProviderOverrideClass,
-        },
-      ],
-    })
-    class AnotherBadProviderModuleClass {}
-
-    try {
-      bootstrapModule(AnotherBadProviderModuleClass, ipcMainMock);
-    } catch (error) {
-      expect(error instanceof Error).toEqual(true);
-      expect(error.message).toContain('is not registered');
-      expect(ipcMainOnSpy).not.toHaveBeenCalled();
-    }
-
-    expect.assertions(6);
   });
 
   it('should do the bootstrap if provider properly configured with injectable classes', () => {
@@ -179,7 +102,7 @@ describe('The @ElectronModule decorator', () => {
       eventHandler(): any {}
     }
     @ElectronModule({
-      providers: [DecoratedWithDependenciesClass],
+      providers: [DecoratedDependencyClass, DecoratedWithDependenciesClass],
     })
     class ModuleClass {}
 

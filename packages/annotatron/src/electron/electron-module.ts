@@ -1,11 +1,6 @@
 import 'reflect-metadata';
-import { Type, GenericClassDecorator, AbstractType } from '../types';
-
-export interface ModuleProviderWithClass {
-  provide: Type<unknown> | AbstractType<unknown>;
-  useClass: Type<unknown>;
-}
-export type ModuleProvider = Type<unknown> | ModuleProviderWithClass;
+import type { Provider, Type } from 'injection-js';
+import { GenericClassDecorator } from '../types';
 
 interface ImportsModuleParams {
   imports: Type<unknown>[];
@@ -14,7 +9,7 @@ interface ImportsModuleParams {
 
 interface ProvidersModuleParams {
   imports?: Type<unknown>[];
-  providers: ModuleProvider[];
+  providers: Provider[];
 }
 
 type PartialModuleParams = ImportsModuleParams | ProvidersModuleParams;

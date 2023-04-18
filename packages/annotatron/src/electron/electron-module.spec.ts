@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable max-classes-per-file */
 import 'reflect-metadata';
-import { Injectable } from '../injectable';
+import { Injectable } from 'injection-js';
 import { Command, Event, Query } from './command-query-event';
 import { ElectronModule, MODULE_METADATA_KEY, MODULE_IMPORTS_KEY, MODULE_PROVIDERS_KEY } from './electron-module';
 

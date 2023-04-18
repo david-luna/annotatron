@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import { GenericMethodDecorator, Type } from '../types';
+import type { Type } from 'injection-js';
+import { GenericMethodDecorator } from '../types';
 
 export const COMMANDS_METADATA_KEY = 'annotatron:commands';
 export const QUERIES_METADATA_KEY = 'annotatron:queries';

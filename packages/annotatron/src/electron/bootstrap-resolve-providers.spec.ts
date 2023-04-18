@@ -1,169 +1,135 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 /* eslint-disable max-classes-per-file */
 import 'reflect-metadata';
-import { Injectable, Injector } from '../injectable';
+import { Injectable } from 'injection-js';
 import { ElectronModule } from './electron-module';
 import { bootstrapResolveProviders } from './bootstrap-resolve-providers';
 
-describe('bootstrapResolveProviders', () => {
-  beforeEach(() => {
-    Injector.reset();
-  });
+@Injectable()
+class ProviderClass {}
 
+@Injectable()
+class ProviderClassForReplacement {}
+
+@Injectable()
+class ProviderDependencyClass {}
+
+@Injectable()
+class ProviderClassWithDependency {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+  constructor(dependency: ProviderDependencyClass) {}
+}
+
+class NonDecoratedProviderClass {}
+class NonDecoratedProviderClassWithDependency {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+  constructor(secretDependency: unknown) {}
+}
+
+// Electron decorators
+class NonDecoratedModuleClass {}
+
+@ElectronModule({
+  imports: [NonDecoratedModuleClass],
+  providers: [],
+})
+class ModuleClassWithNonDecoratedImports {}
+
+@ElectronModule({
+  providers: [ProviderClass],
+})
+class ModuleClassOnlyWithProviders {}
+
+@ElectronModule({
+  providers: [NonDecoratedProviderClass],
+})
+class ModuleClassOnlyWithNonDecoratedProvider {}
+
+@ElectronModule({
+  providers: [NonDecoratedProviderClassWithDependency],
+})
+class ModuleClassWithNonDecoratedProviderDependency {}
+
+@ElectronModule({
+  providers: [{ provide: ProviderClass, useClass: ProviderClassForReplacement }],
+})
+class ModuleClassWithUseClassProvider {}
+
+@ElectronModule({
+  providers: [
+    ProviderClassForReplacement,
+    {
+      provide: ProviderClass,
+      useFactory: (replacement: ProviderClassForReplacement) => replacement,
+      deps: [ProviderClassForReplacement],
+    },
+  ],
+})
+class ModuleClassWithUseFactoryProvider {}
+
+@ElectronModule({
+  imports: [ModuleClassOnlyWithProviders],
+  providers: [ProviderDependencyClass, ProviderClassWithDependency],
+})
+class ModuleClassOnlyWithProvidersAndImports {}
+
+describe('bootstrapResolveProviders', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should throw an error if importing a non decorated class', () => {
-    class NonDecoratedModuleClass {}
-    @ElectronModule({
-      imports: [NonDecoratedModuleClass],
-      providers: [],
-    })
-    class MisconfiguredModuleClassOne {}
-
-    expect(() => bootstrapResolveProviders(MisconfiguredModuleClassOne)).toThrow('is not a module');
+  it('should throw an error if is not a module', () => {
+    expect(() => bootstrapResolveProviders(NonDecoratedModuleClass)).toThrow('is not a module');
   });
 
-  it('should throw an error if importing a wrongly decorated class', () => {
-    @Injectable()
-    class WronglyDecoratedModuleClass {}
-    @ElectronModule({
-      imports: [WronglyDecoratedModuleClass],
-      providers: [],
-    })
-    class MisconfiguredModuleClassTwo {}
-
-    expect(() => bootstrapResolveProviders(MisconfiguredModuleClassTwo)).toThrow('is not a module');
+  it('should throw an error if importing a non decorated module class', () => {
+    expect(() => bootstrapResolveProviders(ModuleClassWithNonDecoratedImports)).toThrow('is not a module');
   });
 
-  it('should throw an error if a regular provider is not injectable', () => {
-    class NonDecoratedProviderClass {}
-    @ElectronModule({
-      providers: [NonDecoratedProviderClass],
-    })
-    class BadProviderModuleClass {}
+  it('should work if module has providers in direct form', () => {
+    const instances = bootstrapResolveProviders(ModuleClassOnlyWithProviders);
 
-    expect(() => bootstrapResolveProviders(BadProviderModuleClass)).toThrow('is not registered');
+    expect(instances.length).toEqual(1);
+    expect(instances[0]).toBeInstanceOf(ProviderClass);
   });
 
-  it('should throw an error if a useClass provider is not injectable', () => {
-    class NonDecoratedProviderToBeOverriddenClass {}
-    class NonDecoratedProviderOverrideClass {}
-    @ElectronModule({
-      providers: [
-        {
-          provide: NonDecoratedProviderToBeOverriddenClass,
-          useClass: NonDecoratedProviderOverrideClass,
-        },
-      ],
-    })
-    class AnotherBadProviderModuleClass {}
+  it('should work if module has non decorated providers with no dependencies', () => {
+    const instances = bootstrapResolveProviders(ModuleClassOnlyWithNonDecoratedProvider);
 
-    expect(() => bootstrapResolveProviders(AnotherBadProviderModuleClass)).toThrow('is not registered');
+    expect(instances.length).toEqual(1);
+    expect(instances[0]).toBeInstanceOf(NonDecoratedProviderClass);
   });
 
-  it('should NOT throw if provider properly configured with injectable classes', () => {
-    @Injectable()
-    class DecoratedProviderClass {}
-    @ElectronModule({
-      providers: [DecoratedProviderClass],
-    })
-    class SubModuleClass {}
-
-    @Injectable()
-    class AnotherDecoratedProviderClass {}
-    @ElectronModule({
-      imports: [SubModuleClass],
-      providers: [AnotherDecoratedProviderClass],
-    })
-    class ModuleClass {}
-
-    // eslint-disable-next-line prettier/prettier
-    expect(bootstrapResolveProviders(ModuleClass)).toEqual([
-      AnotherDecoratedProviderClass,
-      DecoratedProviderClass,
-    ]);
-  });
-
-  it('should throw if provider misconfigured with useClass providers', () => {
-    @Injectable()
-    class DecoratedProviderToBeOverriddenClass {}
-    @Injectable()
-    class DecoratedProviderWhichOverridesClass {}
-    @Injectable()
-    class DecoratedProviderWhichAlsoOverridesClass {}
-
-    @ElectronModule({
-      providers: [
-        {
-          provide: DecoratedProviderToBeOverriddenClass,
-          useClass: DecoratedProviderWhichOverridesClass,
-        },
-      ],
-    })
-    class ModuleClassWithOverride {}
-
-    @ElectronModule({
-      imports: [ModuleClassWithOverride],
-      providers: [
-        {
-          provide: DecoratedProviderToBeOverriddenClass,
-          useClass: DecoratedProviderWhichAlsoOverridesClass,
-        },
-      ],
-    })
-    class ModuleClassImportingOverride {}
-
-    expect(() => bootstrapResolveProviders(ModuleClassImportingOverride)).toThrow('is already overridden');
-  });
-
-  it('should NOT throw if provider properly configured with useClass providers', () => {
-    @Injectable()
-    class DecoratedProviderToBeOverriddenClass {}
-    @Injectable()
-    class DecoratedProviderWhichOverridesClass {}
-    @ElectronModule({
-      providers: [
-        {
-          provide: DecoratedProviderToBeOverriddenClass,
-          useClass: DecoratedProviderWhichOverridesClass,
-        },
-      ],
-    })
-    class ModuleClass {}
-
-    const overrideSpy = jest.spyOn(Injector, 'overrideToken');
-
-    expect(bootstrapResolveProviders(ModuleClass)).toEqual([
-      {
-        provide: DecoratedProviderToBeOverriddenClass,
-        useClass: DecoratedProviderWhichOverridesClass,
-      },
-    ]);
-    expect(overrideSpy).toHaveBeenCalledWith(
-      DecoratedProviderToBeOverriddenClass,
-      DecoratedProviderWhichOverridesClass,
+  it('should throw an error if module has non decorated providers with dependencies', () => {
+    expect(() => bootstrapResolveProviders(ModuleClassWithNonDecoratedProviderDependency)).toThrow(
+      'Cannot resolve all parameters',
     );
   });
 
-  it('should NOT throw with providers that have dependencies', () => {
-    @Injectable()
-    class DecoratedDependencyClass {}
-    @Injectable()
-    class DecoratedWithDependenciesClass {
-      constructor(private dependency: DecoratedDependencyClass) {}
-    }
-    @ElectronModule({
-      providers: [DecoratedWithDependenciesClass],
-    })
-    class ModuleClass {}
+  it('should work if module has providers with useClass', () => {
+    const instances = bootstrapResolveProviders(ModuleClassWithUseClassProvider);
 
-    bootstrapResolveProviders(ModuleClass);
+    expect(instances.length).toEqual(1);
+    expect(instances[0]).toBeInstanceOf(ProviderClassForReplacement);
+  });
 
-    // eslint-disable-next-line prettier/prettier
-    expect(bootstrapResolveProviders(ModuleClass)).toEqual([
-      DecoratedWithDependenciesClass,
-    ])
+  it('should work if module has providers with useFactory', () => {
+    const classes = [ProviderClass, ProviderClassForReplacement];
+    const instances = bootstrapResolveProviders(ModuleClassWithUseFactoryProvider);
+
+    instances.forEach((i) => {
+      expect(classes.find((c) => i instanceof c)).toBeTruthy();
+    });
+    expect(instances.length).toEqual(classes.length);
+  });
+
+  it('should work if module has providers and good imports', () => {
+    const classes = [ProviderClass, ProviderClassWithDependency, ProviderDependencyClass];
+    const instances = bootstrapResolveProviders(ModuleClassOnlyWithProvidersAndImports);
+
+    instances.forEach((i) => {
+      expect(classes.find((c) => i instanceof c)).toBeTruthy();
+    });
+    expect(instances.length).toEqual(classes.length);
   });
 });

@@ -1,8 +1,7 @@
-import { Injector } from '../injectable';
-import { Type, isPromise } from '../types';
-import { ModuleProvider } from './electron-module';
+import type { Provider, Type } from 'injection-js';
+import { isPromise } from '../types';
 import { ElectronMainEmitter, BrowserWindow } from './electron-types';
-import { bootstrapResolveProviders, isType } from './bootstrap-resolve-providers';
+import { bootstrapResolveProviders } from './bootstrap-resolve-providers';
 import { COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY } from './command-query-event';
 
 interface CommandQueryOrEvent {
@@ -76,14 +75,11 @@ const connectMethod = (
  * @param provider the provider to connect to the main process if annotated properly
  * @param emitter the main process emitter (ipcMain)
  */
-const connectProvider = (provider: ModuleProvider, emitter: ElectronMainEmitter): void => {
-  const classToConnect = isType(provider) ? provider : provider.useClass;
-
+const connectProvider = (instance: Provider, emitter: ElectronMainEmitter): void => {
   const channels = [COMMANDS_METADATA_KEY, QUERIES_METADATA_KEY, EVENTS_METADATA_KEY];
-  const instance = Injector.resolve(classToConnect);
 
   channels.forEach((channel) => {
-    const observerClass = classToConnect;
+    const observerClass = instance.constructor;
     const channelObservers = (Reflect.getMetadata(channel, observerClass) || {}) as Record<string, string[]>;
     const observedTypes = Object.keys(channelObservers);
 
@@ -128,9 +124,9 @@ export const emitEvent = (data: CommandQueryOrEvent): void => {
  * @param emitter the main process emitter (ipcMain)
  */
 export const bootstrapModule = (targetModule: Type<unknown>, emitter: ElectronMainEmitter): void => {
-  const providers = bootstrapResolveProviders(targetModule);
+  const resolvedProviders = bootstrapResolveProviders(targetModule);
 
   mainEmitter = emitter;
   browserWindows = [];
-  providers.forEach((provider) => connectProvider(provider, emitter));
+  resolvedProviders.forEach((provider) => connectProvider(provider, emitter));
 };
