@@ -14,7 +14,7 @@ Set of helper annotations for electron projects inspired by the Angular module d
 You can create a new Electron project with annotatron from one of two templates by running the following command.
 
 ```bash
-npx create-annotatron-app {template} {project}
+npx create-annotatron-app {template} {name}
 ```
 
 where
@@ -178,6 +178,18 @@ contextBridge.exposeInMainWorld(
 Point to that file in the `preload` option when creating a window and you and your renderer process (the UI) will have a global property named `mainProcess` which has all the tools for communicating with the main process.
 
 ## Release notes
+
+### [0.1.0]
+
+In this release we replaced our injection mechanism for [injection-js](https://www.npmjs.com/package/injection-js) package bringing the power of Angular's `Reflective Injector`.
+
+The API hasn't changed but extended:
+
+- adding `useFactory` providers
+- adding `useValue` providers
+- `InjectionToken` is also available
+
+For full API information check Angular's DO [docs](https://v4.angular.io/guide/dependency-injection)
 
 ### [0.0.11]
 
