@@ -9,11 +9,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: 20
           registry-url: 'https://registry.npmjs.org'
+      # Ensure npm 11.5.1 or later is installed (for trusted publishing)
+      - name: Update NPM
+        run: npm install -g npm@latest
       - name: Tests
         run: |
           npm ci
@@ -27,5 +30,3 @@ jobs:
         run: |
           npm run build
           npm run release
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
