@@ -185,9 +185,9 @@ describe('The @ElectronModule decorator', () => {
     class ModuleClass {}
 
     const windowMock = ({ on: jest.fn(), webContents: { send: jest.fn() } } as unknown) as BrowserWindow;
-    const onSpy = (windowMock.on as unknown) as jest.SpyInstance;
-    const sendSpy = (windowMock.webContents.send as unknown) as jest.SpyInstance;
-    const ipcMainEmitSpy = (ipcMainMock.emit as unknown) as jest.SpyInstance;
+    const onSpy = windowMock.on as unknown as jest.SpyInstance;
+    const sendSpy = windowMock.webContents.send as unknown as jest.SpyInstance;
+    const ipcMainEmitSpy = ipcMainMock.emit as unknown as jest.SpyInstance;
 
     it('should keep a window reference and emit events on it', () => {
       const eventData = { type: 'event-type', payload: 'test' };
