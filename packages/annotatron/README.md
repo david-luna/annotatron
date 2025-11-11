@@ -191,6 +191,14 @@ The API hasn't changed but extended:
 
 For full API information check Angular's DO [docs](https://v4.angular.io/guide/dependency-injection)
 
+### [0.1.1]
+
+- Use trusted publishers.
+
+### [0.1.0]
+
+- Add [`injection-js`](https://www.npmjs.com/package/injection-js) to manage dependencies.
+
 ### [0.0.11]
 
 - Overriden providers with `useClass` were returning different instances.
