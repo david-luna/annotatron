@@ -10,7 +10,7 @@
     "create-annotatron-app": "./index.js"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   },
   "keywords": [
     "electron",
