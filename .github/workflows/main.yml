@@ -16,9 +16,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Tests
         run: |
-          npm install
-          lerna bootstrap
-          lerna run test
+          npm ci
+          npm run test
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
@@ -26,7 +25,7 @@ jobs:
           path-to-lcov: './packages/annotatron/coverage/lcov.info'
       - name: Build & Publish
         run: |
-          lerna run build
-          lerna publish from-package --no-verify-access --yes
+          npm run build
+          npm run release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

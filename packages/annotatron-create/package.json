@@ -9,6 +9,9 @@
   "bin": {
     "create-annotatron-app": "./index.js"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=18"
   },
